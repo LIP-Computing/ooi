@@ -21,6 +21,7 @@ from ooi.occi.core import entity
 from ooi.occi.core import link
 from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
+from ooi.occi.infrastructure import ip_reservation
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
 from ooi.occi.infrastructure import storage
@@ -73,6 +74,22 @@ class Controller(base.Controller):
                 occi_ip_pools.append(os_network.OSFloatingIPPool(p["name"]))
         return occi_ip_pools
 
+    def _ip_reservations(self, req):
+        ips = self.os_helper.get_floating_ips(req)
+        occi_ip_pools = []
+        if ips:
+            for ip in ips:
+                ip_id = ip["id"]
+                ip_pool = ip["pool"]
+                ip_address = ip["ip"]
+                occi_ip_pools.append(
+                    ip_reservation.IPReservation(
+                        title=ip_pool,
+                        address=ip_address,
+                        id=ip_id
+                    ))
+        return occi_ip_pools
+
     def index(self, req):
         l = []
         # OCCI Core Kinds:
@@ -112,4 +129,7 @@ class Controller(base.Controller):
 
         # OpenStack Floating IP Pools
         l.extend(self._ip_pools(req))
+
+        # OpenStack Floating IPs
+        l.extend(self._ip_reservations(req))
         return l
