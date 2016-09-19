@@ -79,7 +79,7 @@ class Controller(base.Controller):
         occi_ip_pools = []
         if ips:
             for ip in ips:
-                ip_id = ip["id"]
+                ip_id = str(ip["id"])  # some versions retrieve int.
                 ip_pool = ip["pool"]
                 ip_address = ip["ip"]
                 occi_ip_pools.append(

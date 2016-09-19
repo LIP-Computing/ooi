@@ -48,7 +48,7 @@ class Controller(base.Controller):
         if ipreservation_list:
             for s in ipreservation_list:
                 if not s["instance_id"]:
-                    n_id = s["id"]
+                    n_id = str(s["id"])  # some versions retrieve int.
                     n_name = s["pool"]
                     n_address = s["ip"]
                     s = ip_reservation.IPReservation(title=n_name,
