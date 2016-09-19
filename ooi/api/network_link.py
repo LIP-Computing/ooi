@@ -20,6 +20,7 @@ from ooi.api import helpers
 from ooi import exception
 from ooi.occi.core import collection
 from ooi.occi.infrastructure import compute
+from ooi.occi.infrastructure import ip_reservation
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
 from ooi.occi import validator as occi_validator
@@ -124,28 +125,42 @@ class Controller(base.Controller):
         validator.validate(scheme)
 
         attrs = obj.get("attributes", {})
-        _, net_id = helpers.get_id_with_kind(
-            req,
-            attrs.get("occi.core.target"),
-            network.NetworkResource.kind)
         _, server_id = helpers.get_id_with_kind(
             req,
             attrs.get("occi.core.source"),
             compute.ComputeResource.kind)
-        pool = None
-        if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
+
+        if (ip_reservation.IPReservation.kind.location
+            in attrs.get("occi.core.target")):
+            _, net_id = helpers.get_id_with_kind(
+                req,
+                attrs.get("occi.core.target"),
+                ip_reservation.IPReservation.kind)
+            os_link = self.os_helper.assign_floating_ip(
+                    req, net_id, server_id
+                )
+        else:
+            _, net_id = helpers.get_id_with_kind(
+                req,
+                attrs.get("occi.core.target"),
+                network.NetworkResource.kind)
+            # TODO(jorgesece): Delete this method for linking public network.
+            # It is deprecated.
+            pool = None
+            if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
                 pool = (
                     obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
                 )
-        # Allocate public IP and associate it ot the server
-        if net_id == os_helpers.PUBLIC_NETWORK:
-            os_link = self.os_helper.assign_floating_ip(
-                req, net_id, server_id, pool
-            )
-        else:
-            # Allocate private network
-            os_link = self.os_helper.create_port(
-                req, net_id, server_id)
+
+            if net_id == os_helpers.PUBLIC_NETWORK:
+                # Allocate public IP and associate it on the server
+                os_link = self.os_helper.assign_floating_ip_deprecated(
+                    req, net_id, server_id, pool
+                )
+            else:
+                # Allocate private network
+                os_link = self.os_helper.create_port(
+                    req, net_id, server_id)
         occi_link = _get_network_link_resources([os_link])
         return collection.Collection(resources=occi_link)
 
