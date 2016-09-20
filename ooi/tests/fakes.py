@@ -121,6 +121,7 @@ pools = {
 }
 
 linked_vm_id = uuid.uuid4().hex
+linked_vm_id_2 = uuid.uuid4().hex
 
 allocated_ip = "192.168.253.23"
 
@@ -178,6 +179,16 @@ ports = {
             "net_id": uuid.uuid4().hex,
             "server_id": linked_vm_id
         },
+        {
+            "port_id": uuid.uuid4().hex,
+            "fixed_ips": [
+                {"ip_address": "192.168.253.2"}
+            ],
+            "mac_addr": uuid.uuid4().hex,
+            "port_state": "ACTIVE",
+            "net_id": uuid.uuid4().hex,
+            "server_id": linked_vm_id_2
+        },
 
     ],
 }
@@ -226,6 +237,32 @@ servers = {
                         "OS-EXT-IPS:type": "fixed",
                         "OS-EXT-IPS-MAC:mac_addr": (
                             ports[tenants["baz"]["id"]][0]["mac_addr"]
+                        )
+                    },
+                    {"addr": floating_ips[tenants["baz"]["id"]][0]["ip"],
+                     "OS-EXT-IPS:type": "floating",
+                     "OS-EXT-IPS-MAC:mac_addr": "1234"},
+                ]
+            }
+        },
+        {
+            "id": linked_vm_id_2,
+            "name": "withvolume",
+            "flavor": {"id": flavors[1]["id"]},
+            "image": {"id": images["bar"]["id"]},
+            "status": "ACTIVE",
+            "os-extended-volumes:volumes_attached": [
+                {"id": volumes[tenants["baz"]["id"]][0]["id"]}
+            ],
+            "addresses": {
+                "private": [
+                    {"addr": (
+                        (ports[tenants["baz"]["id"]]
+                         [1]["fixed_ips"][0]["ip_address"])
+                    ),
+                        "OS-EXT-IPS:type": "fixed",
+                        "OS-EXT-IPS-MAC:mac_addr": (
+                            ports[tenants["baz"]["id"]][1]["mac_addr"]
                         )
                     },
                     {"addr": floating_ips[tenants["baz"]["id"]][0]["ip"],
@@ -507,15 +544,18 @@ class FakeApp(object):
                     {"volumeAttachment": attach})
 
     def _populate_ports(self, path, servers_list, ports_list):
-        if servers_list:
+        for s in servers_list:
+            p_list = []
+            path_base = "%s/servers/%s/%s" % (
+                        path,
+                        s["id"],
+                        "os-interface"
+                    )
             for p in ports_list:
-                path_base = "%s/servers/%s/%s" % (
-                    path,
-                    servers_list[0]["id"],
-                    "os-interface"
-                )
-                self.routes[path_base] = create_fake_json_resp(
-                    {"interfaceAttachments": [p]})
+                if p["server_id"] == s["id"]:
+                    p_list.append(p)
+            self.routes[path_base] = create_fake_json_resp(
+                {"interfaceAttachments": p_list})
 
     @webob.dec.wsgify()
     def __call__(self, req):

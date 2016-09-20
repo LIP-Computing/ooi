@@ -39,20 +39,20 @@ class TestIntegrationIPReservation(TestIntegration):
             app=None,openstack_version="/v2.1"
         )
 
-    def test_list(self):
-        list = self.controller.index(self.req)
-        self.assertIsInstance(list.resources[0], ip_reservation.IPReservation)
-        self.assertEqual(2, list.resources.__len__())
-
-    def test_show(self):
-        reservation_id = '705f8740-5bcc-4a3b-9375-1ef4718d5e88'
-        result = self.controller.show(self.req, reservation_id)
-        self.assertIsInstance(result, ip_reservation.IPReservation)
-        self.assertEqual("external-net", result.title)
-
-    def test_query(self):
-        query_controller = query.Controller(
-            app=None,openstack_version="/v2.1"
-        )
-        list = query_controller.index(self.req)
-        self.assertIsInstance(list[list.__len__()-1],  ip_reservation.IPReservation)
+    # def test_list(self):
+    #     list = self.controller.index(self.req)
+    #     self.assertIsInstance(list.resources[0], ip_reservation.IPReservation)
+    #     self.assertEqual(2, list.resources.__len__())
+    #
+    # def test_show(self):
+    #     reservation_id = '705f8740-5bcc-4a3b-9375-1ef4718d5e88'
+    #     result = self.controller.show(self.req, reservation_id)
+    #     self.assertIsInstance(result, ip_reservation.IPReservation)
+    #     self.assertEqual("external-net", result.title)
+    #
+    # def test_query(self):
+    #     query_controller = query.Controller(
+    #         app=None,openstack_version="/v2.1"
+    #     )
+    #     list = query_controller.index(self.req)
+    #     self.assertIsInstance(list[list.__len__()-1],  ip_reservation.IPReservation)

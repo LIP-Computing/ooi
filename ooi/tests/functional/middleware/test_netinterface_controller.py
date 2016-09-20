@@ -54,41 +54,42 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
             resp = req.get_response(self.app)
 
             self.assertEqual(200, resp.status_code)
+            servers = fakes.servers[tenant["id"]]
             expected = []
-            server = fakes.servers[tenant["id"]][0]
-            server_addrs = server.get("addresses", {})
-            instance_vm = fakes.linked_vm_id
-            for addr_set in server_addrs.values():
-                for addr in addr_set:
-                    mac = addr["OS-EXT-IPS-MAC:mac_addr"]
-                    ip_type = addr["OS-EXT-IPS:type"]
-                    address = addr['addr']
-                    net_id = None
-                    if ip_type == "fixed":
-                        for p in fakes.ports[tenant["id"]]:
-                            if p["mac_addr"] == mac:
-                                net_id = p['net_id']
-                                break
-                    else:
-                        for floating_ip in fakes.floating_ips[tenant["id"]]:
-                            if floating_ip["ip"] == address:
-                                net_id = floating_ip['id']
-                                break
-                    link_id = '_'.join([instance_vm,
-                                        net_id,
-                                        address])
-                    expected.append(
-                        ("X-OCCI-Location",
-                         utils.join_url(self.application_url + "/",
-                                        "networklink/%s" % link_id)))
+            for server in servers:
+                server_addrs = server.get("addresses", {})
+                instance_vm = server["id"]
+                for addr_set in server_addrs.values():
+                    for addr in addr_set:
+                        mac = addr["OS-EXT-IPS-MAC:mac_addr"]
+                        ip_type = addr["OS-EXT-IPS:type"]
+                        address = addr['addr']
+                        net_id = None
+                        if ip_type == "fixed":
+                            for p in fakes.ports[tenant["id"]]:
+                                if p["mac_addr"] == mac:
+                                    net_id = p['net_id']
+                                    break
+                        else:
+                            for floating_ip in fakes.floating_ips[tenant["id"]]:
+                                if floating_ip["ip"] == address:
+                                    net_id = floating_ip['id']
+                                    break
+                        link_id = '_'.join([instance_vm,
+                                            net_id,
+                                            address])
+                        expected.append(
+                            ("X-OCCI-Location",
+                             utils.join_url(self.application_url + "/",
+                                            "networklink/%s" % link_id)))
 
             self.assertExpectedResult(expected, resp)
 
     def test_show_iface(self):
         tenant = fakes.tenants["baz"]
-        instance_vm = fakes.linked_vm_id
         for p in fakes.ports[tenant["id"]]:
             for ip in p["fixed_ips"]:
+                instance_vm = p["server_id"]
                 link_id = '_'.join([instance_vm,
                                     p["net_id"],
                                     ip["ip_address"]]

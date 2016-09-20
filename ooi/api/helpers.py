@@ -760,17 +760,18 @@ class OpenStackHelper(BaseHelper):
                     ip_id = None
                     mac = addr["OS-EXT-IPS-MAC:mac_addr"]
                     ip_type = addr["OS-EXT-IPS:type"]
-                    address = addr['addr']
                     if ip_type == "fixed":
                         for p in ports:
                             if p['mac_addr'] == mac:
                                 ip_id = p['port_id']
+                                network_id = p['net_id']
                                 break
                     else:
                         for fp in floating_ips:
                             if compute_id == fp['instance_id']:
                                 pool = fp['pool']
                                 ip_id = fp['id']
+                                network_id = fp['id']
                                 public_ip = True
                                 break
                     return self._build_link(
@@ -997,6 +998,18 @@ class OpenStackHelper(BaseHelper):
             if server_mac == mac:
                 return p['net_id']
 
+        raise webob.exc.HTTPNotFound
+
+    def get_floatingip_id(self, req, address):
+        """Get the floating IP ID
+
+        :param req: the incoming network
+        :param address: floating ip address
+        """
+        floating_ips = self.get_floating_ips(req)
+        for fp in floating_ips:
+            if address == fp['ip']:
+                return fp['id']
         raise webob.exc.HTTPNotFound
 
     def assign_floating_ip(self, req, floatingip_id, device_id):

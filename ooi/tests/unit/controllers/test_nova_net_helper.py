@@ -21,7 +21,8 @@ import mock
 
 from ooi.api import helpers
 from ooi.tests import base
-from ooi.tests import fakes_network as fakes
+from ooi.tests import fakes
+from ooi.tests import fakes_network
 from ooi import utils
 
 
@@ -35,10 +36,10 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
-        resp_float = fakes.create_fake_json_resp(
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
         req_mock_float = mock.MagicMock()
@@ -51,10 +52,10 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_no_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
-        resp_float = fakes.create_fake_json_resp(
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": []}, 204
         )
         req_mock_float = mock.MagicMock()
@@ -69,8 +70,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         id = uuid.uuid4().hex
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
-        resp_float = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
         req_mock = mock.MagicMock()
@@ -105,7 +106,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         label = "network11"
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp(
             {"network": {"id": id, "label": label,
                          "cidr": address,
                          "gateway": gateway}}, 200
@@ -136,7 +137,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
                       "cidr": cidr,
                       "gateway": gateway
                       }
-        resp = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp(
             {"network": {"id": net_id, "label": name,
                          "cidr": cidr,
                          "gateway": gateway}}, 200
@@ -176,3 +177,167 @@ class TestNovaNetOpenStackHelper(base.TestCase):
             None, method="DELETE",
             path="/%s/os-networks/%s" % (tenant_id, net_id),
         )
+
+    @mock.patch.object(helpers.OpenStackHelper, "index")
+    @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
+    @mock.patch.object(helpers.OpenStackHelper, "get_floating_ips")
+    def test_list_compute_net_links(self, m_float, m_ports, m_servers):
+        tenant = fakes.tenants["baz"]
+        servers = fakes.servers[tenant["id"]]
+        floating_ips = fakes.floating_ips[tenant["id"]]
+        ports = fakes.ports[tenant["id"]]
+        m_servers.return_value = servers
+        m_ports.return_value = ports
+        m_float.return_value = floating_ips
+
+        resp = self.helper.list_compute_net_links(None)
+
+        expected = []
+        for server in servers:
+            server_addrs = server.get("addresses", {})
+            instance_vm = server["id"]
+            for addr_set in server_addrs.values():
+                for addr in addr_set:
+                    mac = addr["OS-EXT-IPS-MAC:mac_addr"]
+                    ip_type = addr["OS-EXT-IPS:type"]
+                    address = addr['addr']
+                    net_id = None
+                    pool = None
+                    public_ip = False
+                    if ip_type == "fixed":
+                        for p in ports:
+                            if p["mac_addr"] == mac:
+                                net_id = p['net_id']
+                                ip_id = p['port_id']
+                                break
+                    else:
+                        for floating_ip in floating_ips:
+                            if floating_ip["ip"] == address:
+                                net_id = floating_ip['id']
+                                ip_id = floating_ip['id']
+                                public_ip = True
+                                pool = floating_ip["pool"]
+                                break
+                    expected.append(
+                        {"network_id": net_id,
+                         "ip": address,
+                         "state": "active",
+                         "compute_id": instance_vm,
+                         "public_ip": public_ip,
+                         "mac": mac,
+                         "ip_id":ip_id,
+                         "pool": pool}
+                    )
+
+        self.assertEquals(expected, resp)
+
+    @mock.patch.object(helpers.OpenStackHelper, "get_server")
+    @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
+    @mock.patch.object(helpers.OpenStackHelper, "get_floating_ips")
+    def test_get_compute_net_link_private(self, m_float, m_ports, m_server):
+        tenant = fakes.tenants["baz"]
+        server = fakes.servers[tenant["id"]][0]
+        floating_ips = fakes.floating_ips[tenant["id"]]
+        ports = fakes.ports[tenant["id"]]
+        m_server.return_value = server
+        m_ports.return_value = ports
+        m_float.return_value = floating_ips
+        expected = []
+        server_addrs = server.get("addresses", {})
+        instance_vm = server["id"]
+        net_id = uuid.uuid4().hex
+        address = "192.168.253.1"
+        resp = self.helper.get_compute_net_link(None,
+                                                instance_vm,
+                                                network_id=net_id,
+                                                address=address,
+                                                )
+        for addr_set in server_addrs.values():
+            for addr in addr_set:
+                if addr["addr"] == address:
+                    mac = addr["OS-EXT-IPS-MAC:mac_addr"]
+                    ip_type = addr["OS-EXT-IPS:type"]
+                    net_id = None
+                    pool = None
+                    public_ip = False
+                    if ip_type == "fixed":
+                        for p in ports:
+                            if p["mac_addr"] == mac:
+                                net_id = p['net_id']
+                                ip_id = p['port_id']
+                                break
+                    else:
+                        for floating_ip in floating_ips:
+                            if floating_ip["ip"] == address:
+                                net_id = floating_ip['id']
+                                ip_id = floating_ip['id']
+                                public_ip = True
+                                pool = floating_ip["pool"]
+                                break
+                    expected.append(
+                        {"network_id": net_id,
+                         "ip": address,
+                         "state": "active",
+                         "compute_id": instance_vm,
+                         "public_ip": public_ip,
+                         "mac": mac,
+                         "ip_id":ip_id,
+                         "pool": pool}
+                    )
+        self.assertEquals(expected, [resp])
+
+    @mock.patch.object(helpers.OpenStackHelper, "get_server")
+    @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
+    @mock.patch.object(helpers.OpenStackHelper, "get_floating_ips")
+    def test_get_compute_net_link_ipres(self, m_float, m_ports, m_server):
+        tenant = fakes.tenants["baz"]
+        server = fakes.servers[tenant["id"]][0]
+        floating_ips = fakes.floating_ips[tenant["id"]]
+        ports = fakes.ports[tenant["id"]]
+        m_server.return_value = server
+        m_ports.return_value = ports
+        m_float.return_value = floating_ips
+        expected = []
+        server_addrs = server.get("addresses", {})
+        instance_vm = server["id"]
+        net_id = uuid.uuid4().hex
+        address = "200.20.20.2"
+        resp = self.helper.get_compute_net_link(None,
+                                                instance_vm,
+                                                network_id=net_id,
+                                                address=address,
+                                                )
+        for addr_set in server_addrs.values():
+            for addr in addr_set:
+                if addr["addr"] == address:
+                    mac = addr["OS-EXT-IPS-MAC:mac_addr"]
+                    ip_type = addr["OS-EXT-IPS:type"]
+                    net_id = None
+                    pool = None
+                    public_ip = False
+                    if ip_type == "fixed":
+                        for p in ports:
+                            if p["mac_addr"] == mac:
+                                net_id = p['net_id']
+                                ip_id = p['port_id']
+                                break
+                    else:
+                        for floating_ip in floating_ips:
+                            if floating_ip["ip"] == address:
+                                net_id = floating_ip['id']
+                                ip_id = floating_ip['id']
+                                public_ip = True
+                                pool = floating_ip["pool"]
+                                break
+                    expected.append(
+                        {"network_id": net_id,
+                         "ip": address,
+                         "state": "active",
+                         "compute_id": instance_vm,
+                         "public_ip": public_ip,
+                         "mac": mac,
+                         "ip_id":ip_id,
+                         "pool": pool}
+                    )
+
+        self.assertEquals(expected, [resp])
