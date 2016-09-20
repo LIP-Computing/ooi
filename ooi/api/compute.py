@@ -256,7 +256,10 @@ class Controller(ooi.api.base.Controller):
                 for addr in addr_set:
                     # TODO(jorgesece): add pool information
                     if addr["OS-EXT-IPS:type"] == "floating":
-                        net_id = helpers.PUBLIC_NETWORK
+                        net_id = self.os_helper.get_floatingip_id(
+                            req,
+                            addr['addr']
+                        )
                     else:
                         try:
                             net_id = self.os_helper.get_network_id(
