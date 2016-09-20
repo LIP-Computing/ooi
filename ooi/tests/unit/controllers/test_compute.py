@@ -193,9 +193,9 @@ class TestComputeController(base.TestController):
                 net_id = fakes.networks.get(tenant["id"], [])
                 if net_id:
                     net_id = net_id[0]['id']
-                floatip_id = fakes.floating_ips.get(tenant["id"], [])
-                if floatip_id:
-                    floatip_id = floatip_id[0]['id']
+                floatip_ip = fakes.floating_ips.get(tenant["id"], [])
+                if floatip_ip:
+                    floatip_id = floatip_ip[0]['id']
                 m_ipr.return_value = floatip_id
                 m_net_id.return_value = net_id
                 m_server.return_value = server
@@ -210,6 +210,8 @@ class TestComputeController(base.TestController):
                 m_flavor.assert_called_with(None, flavor["id"])
                 m_image.assert_called_with(None, image["id"])
                 m_vol.assert_called_with(None, server["id"])
+                if floatip_ip:
+                    m_ipr.assert_called_with(None, floatip_ip[0]["ip"])
 
     @mock.patch.object(helpers.OpenStackHelper, "get_server_volumes_link")
     @mock.patch.object(helpers.OpenStackHelper, "get_image")
@@ -229,9 +231,9 @@ class TestComputeController(base.TestController):
                 net_id = fakes.networks.get(tenant["id"], [])
                 if net_id:
                     net_id = net_id[0]['id']
-                floatip_id = fakes.floating_ips.get(tenant["id"], [])
-                if floatip_id:
-                    floatip_id = floatip_id[0]['id']
+                floatip_ip = fakes.floating_ips.get(tenant["id"], [])
+                if floatip_ip:
+                    floatip_id = floatip_ip[0]['id']
                 m_ipr.return_value = floatip_id
                 m_net_id.return_value = net_id
                 m_server.return_value = server
@@ -246,6 +248,8 @@ class TestComputeController(base.TestController):
                 m_flavor.assert_called_with(None, flavor["id"])
                 m_image.assert_called_with(None, image["id"])
                 m_vol.assert_called_with(None, server["id"])
+                if floatip_ip:
+                    m_ipr.assert_called_with(None, floatip_ip[0]["ip"])
 
     @mock.patch.object(helpers.OpenStackHelper, "create_server")
     @mock.patch.object(compute.Controller, "_get_network_from_req")
