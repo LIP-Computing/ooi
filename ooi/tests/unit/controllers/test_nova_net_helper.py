@@ -122,7 +122,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         m_rq.assert_called_with(
             None, method="GET",
             path="/%s/os-networks/%s" % (tenant_id, id),
-            )
+        )
 
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
@@ -179,14 +179,17 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         )
 
     @mock.patch.object(helpers.OpenStackHelper, "index")
+    @mock.patch.object(helpers.OpenStackHelper, "get_server")
     @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
     @mock.patch.object(helpers.OpenStackHelper, "get_floating_ips")
-    def test_list_compute_net_links(self, m_float, m_ports, m_servers):
+    def test_list_compute_net_links(self, m_float, m_ports, m_servers,
+                                    m_list_server):
         tenant = fakes.tenants["baz"]
         servers = fakes.servers[tenant["id"]]
         floating_ips = fakes.floating_ips[tenant["id"]]
         ports = fakes.ports[tenant["id"]]
-        m_servers.return_value = servers
+        m_servers.side_effect = servers
+        m_list_server.return_value = servers
         m_ports.return_value = ports
         m_float.return_value = floating_ips
 

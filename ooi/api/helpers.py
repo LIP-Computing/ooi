@@ -795,8 +795,9 @@ class OpenStackHelper(BaseHelper):
         floating_ips = self.get_floating_ips(
             req
         )
-        for compute in compute_list:
-            compute_id = compute["id"]
+        for c in compute_list:
+            compute_id = c["id"]
+            compute = self.get_server(req, compute_id)
             ports = self._get_ports(req, compute_id)
             server_addrs = compute.get("addresses", {})
             for addr_set in server_addrs.values():
