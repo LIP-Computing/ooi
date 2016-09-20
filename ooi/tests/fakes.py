@@ -129,10 +129,10 @@ floating_ips = {
     tenants["bar"]["id"]: [],
     tenants["baz"]["id"]: [
         {
-            "fixed_ip": "10.0.0.2",
+            "fixed_ip": "192.168.253.1",
             "id": uuid.uuid4().hex,
             "instance_id": linked_vm_id,
-            "ip": "192.168.253.1",
+            "ip": "200.20.20.2",
             "pool": pools[tenants["baz"]["id"]][0]["name"],
         },
         {

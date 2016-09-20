@@ -22,6 +22,7 @@ from ooi.occi.core import entity
 from ooi.occi.core import link
 from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
+from ooi.occi.infrastructure import ip_reservation
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
 from ooi.occi.infrastructure import storage
@@ -42,7 +43,8 @@ class TestQueryController(base.TestController):
     @mock.patch.object(query.Controller, "_os_tpls")
     @mock.patch.object(query.Controller, "_resource_tpls")
     @mock.patch.object(query.Controller, "_ip_pools")
-    def test_index(self, m_res, m_os, m_pools):
+    @mock.patch.object(query.Controller, "_ip_reservations")
+    def test_index(self, m_ipres, m_res, m_os, m_pools):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
 
@@ -56,6 +58,8 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
+        ip_res = ip_reservation.IPReservation("title","127.0.0.1")
+        m_ipres.return_value = [ip_res]
 
         expected = [
             res_tpl,
@@ -89,6 +93,7 @@ class TestQueryController(base.TestController):
             network.ip_network,
             network_link.NetworkInterface.kind,
             network_link.ip_network_interface,
+            ip_res,
 
             # OCCI infra compute mixins
             infra_templates.os_tpl,
@@ -105,7 +110,8 @@ class TestQueryController(base.TestController):
     @mock.patch.object(query.Controller, "_os_tpls")
     @mock.patch.object(query.Controller, "_resource_tpls")
     @mock.patch.object(query.Controller, "_ip_pools")
-    def test_index_neutron(self, m_res, m_os, m_pools):
+    @mock.patch.object(query.Controller, "_ip_reservations")
+    def test_index_neutron(self, m_ipres, m_res, m_os, m_pools):
         neutron_controller = query.Controller(mock.MagicMock(),
                                               None, "http://foo")
         tenant = fakes.tenants["foo"]
@@ -121,6 +127,8 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
+        ip_res = ip_reservation.IPReservation("title","127.0.0.1")
+        m_ipres.return_value = [ip_res]
 
         expected = [
             res_tpl,
@@ -155,6 +163,7 @@ class TestQueryController(base.TestController):
             network.ip_network,
             network_link.NetworkInterface.kind,
             network_link.ip_network_interface,
+            ip_res,
 
             # OCCI infra compute mixins
             infra_templates.os_tpl,

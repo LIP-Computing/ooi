@@ -710,7 +710,7 @@ class OpenStackHelper(BaseHelper):
 
     @staticmethod
     def _build_link(net_id, compute_id, ip, ip_id=None, mac=None, pool=None,
-                    state='ACTIVE'):
+                    state='ACTIVE', public_ip=False):
         link = {}
         link['mac'] = mac
         link['pool'] = pool
@@ -719,6 +719,7 @@ class OpenStackHelper(BaseHelper):
         link['ip'] = ip
         link['ip_id'] = ip_id
         link['state'] = os_helpers.vm_state(state)
+        link['public_ip'] = public_ip
         return link
 
     def _get_ports(self, req, compute_id):
@@ -754,11 +755,12 @@ class OpenStackHelper(BaseHelper):
         for addr_set in server_addrs.values():
             for addr in addr_set:
                 if addr["addr"] == address:
+                    public_ip = False
                     pool = None
                     ip_id = None
                     mac = addr["OS-EXT-IPS-MAC:mac_addr"]
                     ip_type = addr["OS-EXT-IPS:type"]
-                    address = addr['ip_address']
+                    address = addr['addr']
                     if ip_type == "fixed":
                         for p in ports:
                             if p['mac_addr'] == mac:
@@ -766,17 +768,20 @@ class OpenStackHelper(BaseHelper):
                                 break
                     else:
                         for fp in floating_ips:
-                            if compute_id == fp['instance']:
+                            if compute_id == fp['instance_id']:
                                 pool = fp['pool']
                                 ip_id = fp['id']
+                                public_ip = True
                                 break
-                    return self._build_link(network_id,
-                            compute_id,
-                            address,
-                            mac=mac,
-                            pool=pool,
-                            ip_id=ip_id
-                            )
+                    return self._build_link(
+                        network_id,
+                        compute_id,
+                        address,
+                        mac=mac,
+                        pool=pool,
+                        ip_id=ip_id,
+                        public_ip=public_ip
+                    )
         raise exception.NotFound()
 
     def list_compute_net_links(self, req):
@@ -795,11 +800,12 @@ class OpenStackHelper(BaseHelper):
             server_addrs = compute.get("addresses", {})
             for addr_set in server_addrs.values():
                 for addr in addr_set:
+                    public_ip = False
                     pool = None
                     network_id = "fixed"
                     mac = addr["OS-EXT-IPS-MAC:mac_addr"]
                     ip_type = addr["OS-EXT-IPS:type"]
-                    address = addr['ip_address']
+                    address = addr['addr']
                     ip_id = None
                     if ip_type == "fixed":
                         for p in ports:
@@ -813,14 +819,18 @@ class OpenStackHelper(BaseHelper):
                                 pool = fp['pool']
                                 ip_id = fp['id']
                                 network_id = fp['id']
-                    link = self._build_link(network_id,
-                            compute_id,
-                            address,
-                            mac=mac,
-                            pool=pool,
-                            ip_id=ip_id
-                            )
-                link_list.append(link)
+                                public_ip = True
+                                break
+                    link = self._build_link(
+                        network_id,
+                        compute_id,
+                        address,
+                        mac=mac,
+                        pool=pool,
+                        ip_id=ip_id,
+                        public_ip=public_ip
+                    )
+                    link_list.append(link)
         return link_list
 
     def get_compute_net_link_deprecated(self, req, compute_id, network_id,
@@ -1005,7 +1015,9 @@ class OpenStackHelper(BaseHelper):
                 floatingip_id,
                 device_id,
                 ip['ip'],
-                ip_id=floatingip_id)
+                ip_id=floatingip_id,
+                public_ip=True
+            )
         except Exception:
             raise exception.OCCIInvalidSchema()
         return link_public

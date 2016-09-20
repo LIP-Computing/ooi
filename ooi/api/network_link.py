@@ -43,8 +43,14 @@ def _get_network_link_resources(link_list):
             state = l.get('state', None)
             ip_id = l.get('ip_id', None)
             net_id = l['network_id']
-            n = network.NetworkResource(title="network",
-                                        id=net_id)
+            public_ip = l['public_ip']
+            if public_ip:
+                n = ip_reservation.IPReservation(title="network",
+                                                 address=ip,
+                                                 id=net_id)
+            else:
+                n = network.NetworkResource(title="network",
+                                            id=net_id)
             c = compute.ComputeResource(title="Compute",
                                         id=compute_id
                                         )
@@ -144,19 +150,19 @@ class Controller(base.Controller):
                 req,
                 attrs.get("occi.core.target"),
                 network.NetworkResource.kind)
-            # TODO(jorgesece): Delete this method for linking public network.
-            # It is deprecated.
-            pool = None
-            if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
-                pool = (
-                    obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
-                )
-
+            ## TODO(jorgesece): DEPRECATION
+            #  Delete this method for linking public network.
             if net_id == os_helpers.PUBLIC_NETWORK:
+                pool = None
+                if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
+                    pool = (
+                        obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
+                    )
                 # Allocate public IP and associate it on the server
                 os_link = self.os_helper.assign_floating_ip_deprecated(
                     req, net_id, server_id, pool
                 )
+            ## END DEPRECATION
             else:
                 # Allocate private network
                 os_link = self.os_helper.create_port(
@@ -181,6 +187,11 @@ class Controller(base.Controller):
             self.os_helper.release_floating_ip(req,
                                                iface.ip_id)
         else:
-            self.os_helper.delete_port(
-                req, server, iface.ip_id)
+            if isinstance(iface.target,
+                          ip_reservation.IPReservation):
+                self.os_helper.remove_floating_ip(req, server,
+                                              iface.address)
+            else:
+                self.os_helper.delete_port(
+                    req, server, iface.ip_id)
         return []
