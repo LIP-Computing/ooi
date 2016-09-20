@@ -79,15 +79,16 @@ class Controller(base.Controller):
         occi_ip_pools = []
         if ips:
             for ip in ips:
-                ip_id = str(ip["id"])  # some versions retrieve int.
-                ip_pool = ip["pool"]
-                ip_address = ip["ip"]
-                occi_ip_pools.append(
-                    ip_reservation.IPReservation(
-                        title=ip_pool,
-                        address=ip_address,
-                        id=ip_id
-                    ))
+                if not ip["instance_id"]:
+                    ip_id = str(ip["id"])  # some versions retrieve int.
+                    ip_pool = ip["pool"]
+                    ip_address = ip["ip"]
+                    occi_ip_pools.append(
+                        ip_reservation.IPReservation(
+                            title=ip_pool,
+                            address=ip_address,
+                            id=ip_id
+                        ))
         return occi_ip_pools
 
     def index(self, req):
