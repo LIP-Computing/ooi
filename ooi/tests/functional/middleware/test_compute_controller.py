@@ -395,14 +395,16 @@ class TestComputeController(test_middleware.TestMiddleware):
                             if p["mac_addr"] == addr["OS-EXT-IPS-MAC:mac_addr"]:
                                 net_id = p["net_id"]
                                 break
+                        target = utils.join_url(self.application_url + "/",
+                                            "network/%s" % net_id)
                     else:
                         for floating_ip in fakes.floating_ips[tenant["id"]]:
                             if floating_ip["ip"] == ip:
                                 net_id = floating_ip['id']
                                 break
+                        target = utils.join_url(self.application_url + "/",
+                                            "ipreservation/%s" % net_id)
                     link_id = '_'.join([server["id"], net_id, ip])
-                    target = utils.join_url(self.application_url + "/",
-                                            "network/%s" % net_id)
                     self.assertResultIncludesLink(link_id, source, target,
                                                   resp)
 
