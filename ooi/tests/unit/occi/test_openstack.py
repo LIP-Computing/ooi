@@ -122,7 +122,7 @@ class TestOSNetworkInterface(base.TestCase):
                                           "127.0.0.1", pool="foo")
         self.assertEqual('_'.join([c.id, n.id, "127.0.0.1"]), i.id)
         self.assertEqual(i.address, "127.0.0.1")
-        self.assertEqual(i.interface, "eth0")
+        self.assertEqual(i.interface, "undefined")
         self.assertEqual(i.mac, "00:01:02:03:04:05")
         self.assertEqual(i.state, "active")
         self.assertIsNone(i.gateway)

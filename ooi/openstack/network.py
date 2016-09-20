@@ -35,13 +35,13 @@ class OSNetworkInterface(network_link.NetworkInterface):
                                            "occi.networkinterface.allocation"])
 
     def __init__(self, source, target, mac, address, ip_id=None,
-                 pool=None, state='active'):
+                 pool=None, state='active', interface='undefined'):
         link_id = '_'.join([source.id, target.id, address])
         mixins = [network_link.ip_network_interface]
         if pool:
             mixins.append(OSFloatingIPPool(pool))
         super(OSNetworkInterface, self).__init__(mixins, source, target,
-                                                 link_id, "eth0", mac,
+                                                 link_id, interface, mac,
                                                  state)
         self.ip_id = ip_id
         self.attributes["occi.networkinterface.address"] = (
