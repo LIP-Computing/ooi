@@ -178,6 +178,7 @@ class Controller(base.Controller):
         """
         iface = self._get_interface_from_id(req, id)
         server = iface.source.id
+        ## TODO(jorgesece): DEPRECATION
         if iface.target.id == os_helpers.PUBLIC_NETWORK:
             # remove floating IP
             self.os_helper.remove_floating_ip(req, server,
@@ -186,6 +187,7 @@ class Controller(base.Controller):
             # release IP
             self.os_helper.release_floating_ip(req,
                                                iface.ip_id)
+        ## END DEPRECATION
         else:
             if isinstance(iface.target,
                           ip_reservation.IPReservation):
