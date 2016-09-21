@@ -907,7 +907,7 @@ class OpenStackHelper(BaseHelper):
         floating_ips = self.get_floating_ips(req)
         for fp in floating_ips:
             if address == fp['ip']:
-                return fp['id']
+                return str(fp['id'])
         raise webob.exc.HTTPNotFound
 
     def assign_floating_ip(self, req, floatingip_id, device_id):
