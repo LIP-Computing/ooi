@@ -121,3 +121,19 @@ class TestNetIPReservationController(test_middleware.TestMiddleware):
                               tenant["id"], method="GET")
         resp = req.get_response(self.app)
         self.assertEqual(404, resp.status_code)
+
+    def test_delete(self):
+        tenant = fakes.tenants["foo"]
+        link_id = uuid.uuid4().hex
+        req = self._build_req("/ipreservation/%s" % link_id,
+                              tenant["id"], method="DELETE")
+        resp = req.get_response(self.app)
+        self.assertEqual(501, resp.status_code)
+
+    def test_create(self):
+        tenant = fakes.tenants["foo"]
+        link_id = uuid.uuid4().hex
+        req = self._build_req("/ipreservation/",
+                              tenant["id"], method="POST")
+        resp = req.get_response(self.app)
+        self.assertEqual(501, resp.status_code)
