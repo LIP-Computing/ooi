@@ -762,16 +762,16 @@ class OpenStackHelper(BaseHelper):
                         network_id = "FIXED"
                         for p in ports:
                             if p['mac_addr'] == mac:
-                                ip_id = p['port_id']
-                                network_id = p['net_id']
+                                ip_id = str(p['port_id'])
+                                network_id = str(p['net_id'])
                                 break
                     else:
                         network_id = "PUBLIC"
                         for fp in floating_ips:
                             if compute_id == fp['instance_id']:
                                 pool = fp['pool']
-                                ip_id = fp['id']
-                                network_id = fp['id']
+                                ip_id = str(fp['id'])
+                                network_id = str(fp['id'])
                                 public_ip = True
                                 break
                     return self._build_link(
