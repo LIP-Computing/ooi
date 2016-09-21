@@ -135,21 +135,21 @@ class Controller(base.Controller):
             attrs.get("occi.core.source"),
             compute.ComputeResource.kind)
 
-        if (ip_reservation.IPReservation.kind.location
-            in attrs.get("occi.core.target")):
+        if (ip_reservation.IPReservation.kind.location in
+                attrs.get("occi.core.target")):
             _, net_id = helpers.get_id_with_kind(
                 req,
                 attrs.get("occi.core.target"),
                 ip_reservation.IPReservation.kind)
             os_link = self.os_helper.assign_floating_ip(
-                    req, net_id, server_id
-                )
+                req, net_id, server_id
+            )
         else:
             _, net_id = helpers.get_id_with_kind(
                 req,
                 attrs.get("occi.core.target"),
                 network.NetworkResource.kind)
-            ## TODO(jorgesece): DEPRECATION
+            # TODO(jorgesece): DEPRECATION
             #  Delete this method for linking public network.
             if net_id == os_helpers.PUBLIC_NETWORK:
                 pool = None
@@ -161,7 +161,7 @@ class Controller(base.Controller):
                 os_link = self.os_helper.assign_floating_ip_deprecated(
                     req, net_id, server_id, pool
                 )
-            ## END DEPRECATION
+            # END DEPRECATION
             else:
                 # Allocate private network
                 os_link = self.os_helper.create_port(
@@ -177,7 +177,7 @@ class Controller(base.Controller):
         """
         iface = self._get_interface_from_id(req, id)
         server = iface.source.id
-        ## TODO(jorgesece): DEPRECATION
+        # TODO(jorgesece): DEPRECATION
         if iface.target.id == os_helpers.PUBLIC_NETWORK:
             # remove floating IP
             self.os_helper.remove_floating_ip(req, server,
@@ -186,12 +186,12 @@ class Controller(base.Controller):
             # release IP
             self.os_helper.release_floating_ip(req,
                                                iface.ip_id)
-        ## END DEPRECATION
+        # END DEPRECATION
         else:
             if isinstance(iface.target,
                           ip_reservation.IPReservation):
                 self.os_helper.remove_floating_ip(req, server,
-                                              iface.address)
+                                                  iface.address)
             else:
                 self.os_helper.delete_port(
                     req, server, iface.ip_id)

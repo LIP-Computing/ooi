@@ -229,7 +229,8 @@ class TestNetworkLinkController(base.TestController):
         ret = network_link_api._get_network_link_resources(None)
         self.assertEqual(ret.__len__(), 0)
 
-    @mock.patch.object(helpers.OpenStackHelper, "assign_floating_ip_deprecated")
+    @mock.patch.object(helpers.OpenStackHelper,
+                       "assign_floating_ip_deprecated")
     @mock.patch("ooi.api.helpers.get_id_with_kind")
     def test_create_public(self, mock_get_id, mock_assign):
         server_id = uuid.uuid4().hex

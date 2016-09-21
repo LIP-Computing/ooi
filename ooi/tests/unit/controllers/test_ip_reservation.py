@@ -14,17 +14,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import collections
-import uuid
-
 import mock
 
 from ooi.api import helpers
-from ooi.api import ip_reservation  as ip_reservation_control
+from ooi.api import ip_reservation as ip_reservation_control
 from ooi import exception
-from ooi.occi.core import collection
 from ooi.occi.infrastructure import ip_reservation
-
 from ooi.tests import base
 from ooi.tests import fakes
 
@@ -63,7 +58,8 @@ class TestIPReservationController(base.TestController):
         floating_ip = fakes.floating_ips[tenant["id"]][0]
         m_ip.return_value = floating_ip
         result = self.controller.show(None, floating_ip["id"])
-        expected = self.controller._get_ipreservation_resources([floating_ip])[0]
+        expected = self.controller._get_ipreservation_resources(
+            [floating_ip])[0]
         self.assertIsInstance(result, ip_reservation.IPReservation)
         self.assertEqual(expected, result)
         m_ip.assert_called_with(None, floating_ip["id"])

@@ -1413,7 +1413,9 @@ class TestOpenStackHelperReqs(TestBaseHelper):
         req_ass.get_response.return_value = resp_ass
         m_req.side_effect = [req_all,
                              req_ass]
-        ret = self.helper.assign_floating_ip_deprecated(None, net_id, device_id)
+        ret = self.helper.assign_floating_ip_deprecated(None,
+                                                        net_id,
+                                                        device_id)
         self.assertIsNotNone(ret)
         self.assertEqual(net_id, ret['network_id'])
         self.assertEqual(device_id, ret['compute_id'])

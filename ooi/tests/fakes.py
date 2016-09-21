@@ -152,7 +152,7 @@ networks = {
     tenants["baz"]["id"]: [
         {"id": uuid.uuid4().hex},
         {"id": uuid.uuid4().hex}
-        ]
+    ]
 }
 
 ports = {
@@ -547,10 +547,10 @@ class FakeApp(object):
         for s in servers_list:
             p_list = []
             path_base = "%s/servers/%s/%s" % (
-                        path,
-                        s["id"],
-                        "os-interface"
-                    )
+                path,
+                s["id"],
+                "os-interface"
+            )
             for p in ports_list:
                 if p["server_id"] == s["id"]:
                     p_list.append(p)
@@ -615,10 +615,9 @@ class FakeApp(object):
         p = {"interfaceAttachment": {
             "port_id": uuid.uuid4().hex,
             "fixed_ips":
-                [{"ip_address":
-                    port[0]["fixed_ips"]
-                    [0]["ip_address"]
-                  }],
+                [{
+                    "ip_address": port[0]["fixed_ips"][0]["ip_address"]
+                }],
             "mac_addr": port[0]["mac_addr"],
             "port_state": "DOWN",
             "net_id": net,

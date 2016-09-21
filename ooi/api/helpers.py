@@ -934,7 +934,7 @@ class OpenStackHelper(BaseHelper):
         return link_public
 
     def assign_floating_ip_deprecated(self, req, network_id, device_id,
-                           pool=None):
+                                      pool=None):
         """assign floating ip to a server
 
         :param req: the incoming request

@@ -155,7 +155,7 @@ class TestComputeController(base.TestController):
     @mock.patch("ooi.occi.validator.Validator")
     def test_run_action_start(self, m_validator, m_get_server, m_run_action):
         tenant = fakes.tenants["foo"]
-#        for action in ("stop", "start", "restart", "suspend"):
+        #        for action in ("stop", "start", "restart", "suspend"):
         action = "start"
 
         state_action_map = {
@@ -219,7 +219,8 @@ class TestComputeController(base.TestController):
     @mock.patch.object(helpers.OpenStackHelper, "get_server")
     @mock.patch.object(helpers.OpenStackHelper, "get_network_id")
     @mock.patch.object(helpers.OpenStackHelper, "get_floatingip_id")
-    def test_show_no_image(self,m_ipr, m_net_id, m_server, m_flavor, m_image, m_vol):
+    def test_show_no_image(self, m_ipr, m_net_id, m_server, m_flavor,
+                           m_image, m_vol):
         for tenant in fakes.tenants.values():
             servers = fakes.servers[tenant["id"]]
             for server in servers:

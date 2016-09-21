@@ -36,7 +36,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
         resp_float = fakes_network.create_fake_json_resp(
@@ -52,7 +53,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_no_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
         resp_float = fakes_network.create_fake_json_resp(
@@ -70,7 +72,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         id = uuid.uuid4().hex
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]}, 200)
         resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
@@ -228,11 +231,11 @@ class TestNovaNetOpenStackHelper(base.TestCase):
                          "compute_id": instance_vm,
                          "public_ip": public_ip,
                          "mac": mac,
-                         "ip_id":ip_id,
+                         "ip_id": ip_id,
                          "pool": pool}
                     )
 
-        self.assertEquals(expected, resp)
+        self.assertEqual(expected, resp)
 
     @mock.patch.object(helpers.OpenStackHelper, "get_server")
     @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
@@ -283,10 +286,10 @@ class TestNovaNetOpenStackHelper(base.TestCase):
                          "compute_id": instance_vm,
                          "public_ip": public_ip,
                          "mac": mac,
-                         "ip_id":ip_id,
+                         "ip_id": ip_id,
                          "pool": pool}
                     )
-        self.assertEquals(expected, [resp])
+        self.assertEqual(expected, [resp])
 
     @mock.patch.object(helpers.OpenStackHelper, "get_server")
     @mock.patch.object(helpers.OpenStackHelper, "_get_ports")
@@ -337,8 +340,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
                          "compute_id": instance_vm,
                          "public_ip": public_ip,
                          "mac": mac,
-                         "ip_id":ip_id,
+                         "ip_id": ip_id,
                          "pool": pool}
                     )
 
-        self.assertEquals(expected, [resp])
+        self.assertEqual(expected, [resp])

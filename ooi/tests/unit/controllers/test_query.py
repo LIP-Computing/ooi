@@ -58,7 +58,8 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
-        ip_res = ip_reservation.IPReservation("title","127.0.0.1")
+        ip_res = ip_reservation.IPReservation("title",
+                                              "127.0.0.1")
         m_ipres.return_value = [ip_res]
 
         expected = [
@@ -127,7 +128,8 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
-        ip_res = ip_reservation.IPReservation("title","127.0.0.1")
+        ip_res = ip_reservation.IPReservation("title",
+                                              "127.0.0.1")
         m_ipres.return_value = [ip_res]
 
         expected = [

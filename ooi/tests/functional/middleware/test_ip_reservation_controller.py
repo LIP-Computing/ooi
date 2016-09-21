@@ -132,7 +132,6 @@ class TestNetIPReservationController(test_middleware.TestMiddleware):
 
     def test_create(self):
         tenant = fakes.tenants["foo"]
-        link_id = uuid.uuid4().hex
         req = self._build_req("/ipreservation/",
                               tenant["id"], method="POST")
         resp = req.get_response(self.app)
