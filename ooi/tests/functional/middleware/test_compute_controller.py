@@ -404,7 +404,7 @@ class TestComputeController(test_middleware.TestMiddleware):
                                 break
                         target = utils.join_url(self.application_url + "/",
                                             "ipreservation/%s" % net_id)
-                    link_id = '_'.join([server["id"], net_id, ip])
+                    link_id = '_'.join([server["id"], ip])
                     self.assertResultIncludesLink(link_id, source, target,
                                                   resp)
 

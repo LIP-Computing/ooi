@@ -136,16 +136,14 @@ class TestNetworkLinkController(base.TestController):
                 os_link['network_id'], os_link['instance_id'], os_link['ip'],
                 mac=None, pool=os_link['pool'], state=os_link['status']
             )
-            link_id = '%s_%s_%s' % (
+            link_id = '%s_%s' % (
                 os_link['instance_id'],
-                os_link['network_id'],
                 os_link['ip'])
 
             ret = self.controller.show(None, link_id)
             self.assertIsInstance(ret, os_network.OSNetworkInterface)
             self.assertEqual(os_link["ip"], ret.address)
             mock_get.assert_called_with(None, str(os_link['instance_id']),
-                                        os_link['network_id'],
                                         os_link['ip'])
 
     @mock.patch.object(network_link_api.Controller, "_get_interface_from_id")
@@ -176,13 +174,13 @@ class TestNetworkLinkController(base.TestController):
         server_id = uuid.uuid4().hex
         net_id = uuid.uuid4().hex
         server_addr = "1.1.1.1"
-        link_id = "%s_%s_%s" % (server_id, net_id, server_addr)
+        link_id = "%s_%s" % (server_id, server_addr)
         mock_get_server.return_value = fake_nets.fake_build_link(
             net_id, server_id, server_addr
         )
         ret = self.controller.show(None, link_id)
         self.assertIsInstance(ret, os_network.OSNetworkInterface)
-        mock_get_server.assert_called_with(None, server_id, net_id,
+        mock_get_server.assert_called_with(None, server_id,
                                            server_addr)
 
     def test_get_network_link_resources_fixed(self):

@@ -61,22 +61,8 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
                 instance_vm = server["id"]
                 for addr_set in server_addrs.values():
                     for addr in addr_set:
-                        mac = addr["OS-EXT-IPS-MAC:mac_addr"]
-                        ip_type = addr["OS-EXT-IPS:type"]
                         address = addr['addr']
-                        net_id = None
-                        if ip_type == "fixed":
-                            for p in fakes.ports[tenant["id"]]:
-                                if p["mac_addr"] == mac:
-                                    net_id = p['net_id']
-                                    break
-                        else:
-                            for floating_ip in fakes.floating_ips[tenant["id"]]:
-                                if floating_ip["ip"] == address:
-                                    net_id = floating_ip['id']
-                                    break
                         link_id = '_'.join([instance_vm,
-                                            net_id,
                                             address])
                         expected.append(
                             ("X-OCCI-Location",
@@ -91,7 +77,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
             for ip in p["fixed_ips"]:
                 instance_vm = p["server_id"]
                 link_id = '_'.join([instance_vm,
-                                    p["net_id"],
                                     ip["ip_address"]]
                                    )
                 req = self._build_req("/networklink/%s" % link_id,
@@ -182,7 +167,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
         resp = req.get_response(self.app)
 
         link_id = '_'.join([link_info['server_id'],
-                            link_info['net_id'],
                             link_info['fixed_ips'][0]
                             ["ip_address"]])
         expected = [("X-OCCI-Location",
@@ -214,7 +198,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
         resp = req.get_response(self.app)
         self.assertEqual(200, resp.status_code)
 
-
     def test_delete_fixed(self):
         tenant = fakes.tenants["baz"]
 
@@ -222,7 +205,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
             if n["net_id"] != "PUBLIC":
                 if n["server_id"]:
                     link_id = '_'.join([n["server_id"],
-                                        n["net_id"],
                                         n["fixed_ips"]
                                         [0]["ip_address"]])
                     req = self._build_req(
@@ -237,7 +219,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
         for n in fakes.floating_ips[tenant["id"]]:
             if n["instance_id"]:
                 link_id = '_'.join([n["instance_id"],
-                                    "PUBLIC",
                                     n["ip"]])
                 req = self._build_req("/networklink/%s" % link_id,
                                       tenant["id"], method="DELETE")
@@ -250,7 +231,6 @@ class TestNetInterfaceController(test_middleware.TestMiddleware):
         for n in fakes.floating_ips[tenant["id"]]:
             if n["instance_id"]:
                 link_id = '_'.join([n["instance_id"],
-                                    n["id"],
                                     n["ip"]])
                 req = self._build_req("/networklink/%s" % link_id,
                                       tenant["id"], method="DELETE")

@@ -86,14 +86,13 @@ class Controller(base.Controller):
         :param id: network link identification
         """
         try:
-            server_id, network_id, server_addr = id.split('_', 2)
+            server_id, server_addr = id.split('_', 1)
         except ValueError:
             raise exception.LinkNotFound(link_id=id)
         try:
             link = self.os_helper.get_compute_net_link(
                 req,
                 server_id,
-                network_id,
                 server_addr)
             occi_instance = _get_network_link_resources([link])[0]
         except Exception:

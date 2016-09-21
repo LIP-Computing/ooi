@@ -252,7 +252,6 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         address = "192.168.253.1"
         resp = self.helper.get_compute_net_link(None,
                                                 instance_vm,
-                                                network_id=net_id,
                                                 address=address,
                                                 )
         for addr_set in server_addrs.values():
@@ -307,7 +306,6 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         address = "200.20.20.2"
         resp = self.helper.get_compute_net_link(None,
                                                 instance_vm,
-                                                network_id=net_id,
                                                 address=address,
                                                 )
         for addr_set in server_addrs.values():
