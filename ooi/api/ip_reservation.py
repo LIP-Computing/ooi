@@ -47,15 +47,14 @@ class Controller(base.Controller):
         occi_ipreservation_resources = []
         if ipreservation_list:
             for s in ipreservation_list:
-                if not s["instance_id"]:
-                    n_id = str(s["id"])  # some versions retrieve int.
-                    n_name = s["pool"]
-                    n_address = s["ip"]
-                    s = ip_reservation.IPReservation(title=n_name,
-                                                     id=n_id,
-                                                     address=n_address
-                                                     )
-                    occi_ipreservation_resources.append(s)
+                n_id = str(s["id"])  # some versions retrieve int.
+                n_name = s["pool"]
+                n_address = s["ip"]
+                s = ip_reservation.IPReservation(title=n_name,
+                                                 id=n_id,
+                                                 address=n_address
+                                                 )
+                occi_ipreservation_resources.append(s)
         return occi_ipreservation_resources
 
     def index(self, req):
