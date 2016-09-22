@@ -1001,3 +1001,33 @@ class OpenStackHelper(BaseHelper):
         os_req = self._get_req(req, path=path, method="DELETE")
         os_req.get_response(self.app)
         return []
+
+    def get_security_group(self, req, sec_id):
+        """Get info about a security group.
+
+        :param req: the incoming request
+        :param sec_id: security group id to show
+        """
+        raise exception.NotImplemented()
+
+    def lit_security_groups(self, req):
+        """List security groups
+
+        :param req: the incoming request
+        """
+        raise exception.NotImplemented()
+
+    def create_security_groups(self, req):
+        """Create security group
+
+        :param req: the incoming request
+        """
+        raise exception.NotImplemented()
+
+    def delete_security_groups(self, req, sec_id):
+        """Delete info about a security group.
+
+        :param req: the incoming request
+        :param sec_id: security group id to delete
+        """
+        raise exception.NotImplemented()
