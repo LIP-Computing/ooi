@@ -543,7 +543,7 @@ class OpenStackNeutron(helpers.BaseHelper):
         if response.status_int != 202:
             raise helpers.exception_from_response(response)
 
-    def get_security_group(self, req, sec_id):
+    def get_security_group_details(self, req, sec_id):
         """Get info about a security group.
 
         :param req: the incoming request
@@ -554,7 +554,7 @@ class OpenStackNeutron(helpers.BaseHelper):
         except Exception:
             raise exception.NotFound()
 
-    def lit_security_groups(self, req):
+    def list_security_groups(self, req):
         """List security groups
 
         :param req: the incoming request
@@ -564,10 +564,11 @@ class OpenStackNeutron(helpers.BaseHelper):
         except Exception:
             raise exception.NotFound()
 
-    def create_security_groups(self, req):
+    def create_security_groups(self, req, rules):
         """Create security group
 
         :param req: the incoming request
+        :param rules: security group rules
         """
         try:
             parameters = []
@@ -575,7 +576,7 @@ class OpenStackNeutron(helpers.BaseHelper):
         except Exception as ex:
             raise ex
 
-    def delete_security_groups(self, req, sec_id):
+    def delete_security_group(self, req, sec_id):
         """Delete info about a security group.
 
         :param req: the incoming request

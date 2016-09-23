@@ -26,17 +26,16 @@ class SecurityGroup(resource.Resource):
                      'security group resource', attributes, 'securitygroup/',
                      related=[resource.Resource.kind])
 
-    def __init__(self, title, summary=None, id=None, rules=None,
-                 mixins=[]):
+    def __init__(self, title, id, rules, summary=None, mixins=[]):
         super(SecurityGroup, self).__init__(title, mixins, summary=summary,
                                             id=id)
         self.attributes["occi.securitygroup.rules"] = attr.MutableAttribute(
             "occi.securitygroup.rules", rules)
 
     @property
-    def vlan(self):
+    def rules(self):
         return self.attributes["occi.securitygroup.rules"].value
 
-    @vlan.setter
+    @rules.setter
     def rules(self, value):
         self.attributes["occi.securitygroup.rules"].value = value
