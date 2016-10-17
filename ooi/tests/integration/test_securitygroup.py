@@ -26,25 +26,29 @@ from ooi import wsgi
 from ooi.tests.integration.keystone import session
 
 
-class TestIntegrationIPReservation(TestIntegration):
+class TestIntegrationSecGroups(TestIntegration):
 
     def setUp(self):
-        super(TestIntegrationIPReservation, self).setUp()
+        super(TestIntegrationSecGroups, self).setUp()
         self.req = Request(
-            KeySession().create_request_nova(self.session, path="/",
+            KeySession().create_request_ssl(self.session, path="/",
                                         environ={},
                                         headers={
                                             "X_PROJECT_ID": self.project_id
                                         }).environ)
 
         self.controller = security_group_controller.Controller(
-            app=None, neutron_ooi_endpoint="http://192.92.149.119:9696/v2.0"
+            app=None, neutron_ooi_endpoint="https://192.92.149.119:9696/v2.0"
         )
 
     def test_list(self):
         list = self.controller.index(self.req)
-        self.assertIsInstance(list.resources[0], security_group.IPReservation)
-        self.assertEqual(2, list.resources.__len__())
+        self.assertIsInstance(list.resources[0], security_group.SecurityGroup)
+
+    def test_show(self):
+        htts_sec = "b86534fa-2435-4d6c-b0d7-ad77f24411e0"
+        resources = self.controller.show(self.req, htts_sec)
+        self.assertIsInstance(resources, security_group.SecurityGroup)
 
 
 # class TestMiddleware(TestIntegration):
