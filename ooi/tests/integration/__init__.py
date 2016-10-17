@@ -22,7 +22,7 @@ class TestIntegration(base.TestController):
 
     def setUp(self):
         super(TestIntegration, self).setUp()
-        self.project_id = "1217d4751d91448bac885955cf7cb7d7"
+        self.project_id = "8ced83fdf0fb4657a580fba434cad555"
         self.public_network = "d34b55b0-6098-4411-8142-a35f48d623f6"
         self.new_network_name = "networkTEST_OCCINET"
         self.session = session.KeySession().create_keystone("demo", "all-in16", self.project_id)
