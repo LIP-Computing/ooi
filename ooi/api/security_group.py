@@ -52,8 +52,8 @@ def process_parameters(req, scheme=None,
     """Get attributes from request parameters
 
     :param req: request
-    :param: scheme: scheme to validate
-    :param: required_attr: attributes required
+    :param scheme: scheme to validate
+    :param required_attr: attributes required
     """
     parameters = parse_validate_schema(req, scheme, required_attr)
     try:
@@ -73,7 +73,7 @@ def process_parameters(req, scheme=None,
 class Controller(base.Controller):
     def __init__(self, app=None, openstack_version=None,
                  neutron_ooi_endpoint=None):
-        """Securitygroup controller initialization
+        """Security group controller initialization
 
         :param app: application
         :param: openstack_version: nova version
@@ -135,7 +135,7 @@ class Controller(base.Controller):
         """
         resp = self.os_helper.get_security_group_details(req, id)
         occi_sc_resources = self._get_security_group_resources(
-            [resp])
+            resp)
         return occi_sc_resources[0]
 
     def create(self, req, body=None):

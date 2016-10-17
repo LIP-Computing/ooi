@@ -76,7 +76,7 @@ class OpenStackNeutron(helpers.BaseHelper):
                                          att_public)
         return net_public[0]["id"]
 
-    def list_resources(self, req, resource, parameters=None):
+    def list_resources(self, req, resource, parameters=None, response_resource=None):
         """List resources.
 
         It returns json code from the server
@@ -84,38 +84,50 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param req: the incoming request
         :param resource: network resource to manage
         :param parameters: query parameters
-        :param tenant: include tenant in the query parameters
+        :param response_resource: in case resource name is different
+        to the response one.
         """
         path = "/%s" % resource
         os_req = self._make_get_request(req, path, parameters)
         response = os_req.get_response()
-        return self.get_from_response(response, resource, [])
+        if not response_resource:
+            response_resource = resource
+        return self.get_from_response(response, response_resource, [])
 
-    def get_resource(self, req, resource, id):
+    def get_resource(self, req, resource, id, response_resource=None):
         """Get information from a resource.
 
         :param req: the incoming request
         :param resource: network resource to manage
         :param id: subnet identification
+        :param response_resource: in case resource name is different
+        to the response one.
         """
         path = "/%s/%s" % (resource, id)
         req = self._make_get_request(req, path)
         response = req.get_response()
         single_resource = resource[:-1]
-        return self.get_from_response(response, single_resource, {})
+        if not response_resource:
+            response_resource = single_resource
+        return self.get_from_response(response, response_resource, {})
 
-    def create_resource(self, req, resource, parameters):
+    def create_resource(self, req, resource, parameters,
+                        response_resource=None):
         """Create a resource.
 
         :param req: the incoming request
         :param resource: network resource to manage
         :param parameters: parameters with values for the new network
+        :param response_resource: in case resource name is different
+        to the response one.
         """
         single_resource = resource[:-1]
         req_subnet = self._make_create_request(req, resource, parameters)
         response_subnet = req_subnet.get_response()
+        if not response_resource:
+            response_resource = single_resource
         json_response = self.get_from_response(
-            response_subnet, single_resource, {})
+            response_subnet, response_resource, {})
         return json_response
 
     def delete_resource(self, req, resource, id):
@@ -550,8 +562,13 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param sec_id: security group id to show
         """
         try:
-            secgroup = self.list_resources(req, 'security-group-rules', sec_id)
-        except Exception:
+            secgroup = self.get_resource(req, 'security-groups', sec_id,
+                                         response_resource="security_group")
+            ooi_sec = os_helpers.build_security_group_from_neutron(
+               [secgroup]
+            )
+            return ooi_sec
+        except Exception as e:
             raise exception.NotFound()
 
     def list_security_groups(self, req):
@@ -560,19 +577,49 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param req: the incoming request
         """
         try:
-            secgroup = self.list_resources(req, 'security-group-rules', None)
-        except Exception:
+            secgroup = self.list_resources(req, 'security-groups',
+                                           response_resource="security_groups")
+            ooi_sec = os_helpers.build_security_group_from_neutron(
+                secgroup
+            )
+            return ooi_sec
+        except Exception as e:
             raise exception.NotFound()
 
-    def create_security_groups(self, req, rules):
+    def create_security_groups(self, req, parameters):
         """Create security group
 
         :param req: the incoming request
-        :param rules: security group rules
+        :param parameters: security group rules
         """
         try:
-            parameters = []
-            secgroup = self.create_resource(req, 'security-group-rules', parameters)
+            # tenant_id = self.tenant_from_req(req)
+            # param_group = {"tenant_id": tenant_id,
+            #                "project_id": tenant_id,
+            #                "description": parameters.get("description", ""),
+            #                "name": parameters["title"],
+            #                }
+            # secgroup = self.create_resource(req, 'security-groups', param_group)
+            # sec_id = secgroup["id"]
+            # rules = parameters["rules"]
+            # for rule in rules:
+            #     port_min, port_max = rule["port"]
+            #     param_rule = {
+            #         "ethertype": rule.get("ipversion", "IPv4"),
+            #         "description": rule.get("description", ""),
+            #         "port_range_max": port_min,
+            #         "port_range_min": port_min,
+            #         "direction": rule.get("range", "0.0.0.0/0"),
+            #         "protocol": rule["protocol"],
+            #         "security_group_id": ""
+            #     }
+            #     secrule = self.create_resource(req, 'security-group-rules', param_rule)
+            #     secgroup["security_group_rules"].append(secrule)
+            # ooi_sec = os_helpers.build_security_group_from_neutron(
+            #    [secgroup]
+            # )
+            # return ooi_sec
+            return 0
         except Exception as ex:
             raise ex
 
@@ -583,6 +630,7 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param sec_id: security group id to delete
         """
         try:
-            secgroup = self.delete_resource(req, 'security-group-rules', sec_id)
+            secgroup = self.delete_resource(req, 'security-groups', sec_id)
+            return secgroup
         except Exception:
             raise exception.NotFound()

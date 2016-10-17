@@ -48,3 +48,46 @@ def network_status(neutron_status):
         return "active"
     else:
         return "inactive"
+
+
+def security_group_rule_type(neutron_type):
+    """Translate neutron rule type.
+
+    :param neutron_type: neutron status
+    """
+    if neutron_type == "ingress":
+        return "inbound"
+    else:
+        return "outbound"
+
+
+def build_security_group_from_neutron(sec_groups):
+    """Translate neutron security groups to ooi standard
+    security group format.
+
+    :param sec_groups: array of security groups
+    """
+    sec_list = []
+    for sec in sec_groups:
+        ooi_sec = {}
+        rules_list = []
+        ooi_sec["id"] = sec["id"]
+        ooi_sec["name"] = sec.get("name", None)
+        #ooi_sec["ipversion"] = sec.get("ethertype", "IPv4")
+        for rule in sec["security_group_rules"]:
+            rule_type = security_group_rule_type(
+                rule["direction"]
+            )
+            rule_protocol = rule.get("protocol", None)
+            rule_port = "%s-%s" % (str(rule["port_range_max"]),
+                                   str(rule["port_range_min"])
+                                   )
+            rule_range = str(rule["remote_ip_prefix"])
+            rules_list.append({"type":rule_type,
+                               "protocol":rule_protocol,
+                               "port": rule_port,
+                               "range": rule_range}
+                              )
+        ooi_sec["rules"] = rules_list
+        sec_list.append(ooi_sec)
+    return sec_list
