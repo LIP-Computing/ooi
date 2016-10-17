@@ -593,33 +593,33 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param parameters: security group rules
         """
         try:
-            # tenant_id = self.tenant_from_req(req)
-            # param_group = {"tenant_id": tenant_id,
-            #                "project_id": tenant_id,
-            #                "description": parameters.get("description", ""),
-            #                "name": parameters["title"],
-            #                }
-            # secgroup = self.create_resource(req, 'security-groups', param_group)
-            # sec_id = secgroup["id"]
-            # rules = parameters["rules"]
-            # for rule in rules:
-            #     port_min, port_max = rule["port"]
-            #     param_rule = {
-            #         "ethertype": rule.get("ipversion", "IPv4"),
-            #         "description": rule.get("description", ""),
-            #         "port_range_max": port_min,
-            #         "port_range_min": port_min,
-            #         "direction": rule.get("range", "0.0.0.0/0"),
-            #         "protocol": rule["protocol"],
-            #         "security_group_id": ""
-            #     }
-            #     secrule = self.create_resource(req, 'security-group-rules', param_rule)
-            #     secgroup["security_group_rules"].append(secrule)
-            # ooi_sec = os_helpers.build_security_group_from_neutron(
-            #    [secgroup]
-            # )
-            # return ooi_sec
-            return 0
+            tenant_id = self.tenant_from_req(req)
+            param_group = {"tenant_id": tenant_id,
+                           "project_id": tenant_id,
+                           "description": parameters.get("description", ""),
+                           "name": parameters["title"],
+                           }
+            secgroup = self.create_resource(req, 'security-groups', param_group)
+            sec_id = secgroup["id"]
+            rules = parameters["rules"]
+            for rule in rules:
+                port_min, port_max = rule["port"] # cut by - and clean spaces
+                param_rule = {
+                    "ethertype": rule.get("ipversion", "IPv4"),
+                    "description": rule.get("description", ""),
+                    "port_range_max": port_min,
+                    "port_range_min": port_min,
+                    "direction": rule["type"],
+                    "remote_ip_prefix": rule.get("range", "0.0.0.0/0"),
+                    "protocol": rule["protocol"],
+                    "security_group_id": sec_id,
+                }
+                secrule = self.create_resource(req, 'security-group-rules', param_rule)
+                secgroup["security_group_rules"].append(secrule)
+            ooi_sec = os_helpers.build_security_group_from_neutron(
+               [secgroup]
+            )
+            return ooi_sec
         except Exception as ex:
             raise ex
 
