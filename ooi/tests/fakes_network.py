@@ -154,6 +154,85 @@ network_links = {
     ],
 }
 
+security_groups = {
+    tenants["bar"]["id"]: [],
+    tenants["foo"]["id"]: [
+        {"security_group": {
+            "project_id": tenants["foo"]["id"],
+            "tenant_id": tenants["foo"]["id"],
+            "description": "default",
+            "id": "85cc3048-abc3-43cc-89b3-377341426ac5",
+            "name": "default",
+            "security_group_rules": [
+                {
+                    "direction": "egress",
+                    "ethertype": "IPv4",
+                    "id": uuid.uuid4().hex,
+                    "port_range_max": "null",
+                    "port_range_min": "null",
+                    "protocol": "null",
+                    "remote_group_id": "null",
+                    "remote_ip_prefix": "null",
+                    "security_group_id": uuid.uuid4().hex,
+                    "project_id": tenants["foo"]["id"],
+                    "tenant_id": tenants["foo"]["id"]
+                },
+                {
+                    "direction": "egress",
+                    "ethertype": "IPv4",
+                    "id": "93aa42e5-80db-4581-9391-3a608bd0e448",
+                    "port_range_max": "null",
+                    "port_range_min": "null",
+                    "protocol": "null",
+                    "remote_group_id": "null",
+                    "remote_ip_prefix": "null",
+                    "security_group_id": uuid.uuid4().hex,
+                    "project_id": tenants["foo"]["id"],
+                    "tenant_id": tenants["foo"]["id"]
+                }
+            ]
+        }
+        },
+        {"security_group": {
+            "project_id": tenants["foo"]["id"],
+            "tenant_id": tenants["foo"]["id"],
+            "description": "default",
+            "id": "85cc3048-abc3-43cc-89b3-377341426ac5",
+            "name": "default",
+            "security_group_rules": [
+                {
+                    "direction": "egress",
+                    "ethertype": "IPv4",
+                    "id": uuid.uuid4().hex,
+                    "port_range_max": "null",
+                    "port_range_min": "null",
+                    "protocol": "null",
+                    "remote_group_id": "null",
+                    "remote_ip_prefix": "null",
+                    "security_group_id": uuid.uuid4().hex,
+                    "project_id": tenants["foo"]["id"],
+                    "tenant_id": tenants["foo"]["id"]
+                },
+                {
+                    "direction": "egress",
+                    "ethertype": "IPv4",
+                    "id": uuid.uuid4().hex,
+                    "port_range_max": "null",
+                    "port_range_min": "null",
+                    "protocol": "null",
+                    "remote_group_id": "null",
+                    "remote_ip_prefix": "null",
+                    "security_group_id": uuid.uuid4().hex,
+                    "project_id": tenants["foo"]["id"],
+                    "tenant_id": tenants["foo"]["id"]
+                }
+            ]
+        }
+        },
+    ]
+
+}
+
 
 def create_fake_json_resp(data, status=200):
     r = webob.Response()
