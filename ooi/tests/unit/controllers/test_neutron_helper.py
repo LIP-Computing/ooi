@@ -19,6 +19,7 @@ import uuid
 
 import mock
 
+from ooi.api import helpers
 from ooi.api import helpers_neutron
 from ooi import exception
 from ooi.tests import base
@@ -528,7 +529,7 @@ class TestNetOpenStackHelper(base.TestCase):
         self.assertEqual([], ret)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
-    def test_list_port_not_found(self, m_list):
+    def test_delete_port_not_found(self, m_list):
         iface = {'compute_id': None,
                  'mac': None}
         m_list.return_value = []
@@ -536,3 +537,103 @@ class TestNetOpenStackHelper(base.TestCase):
                           self.helper.delete_port,
                           None,
                           iface)
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "create_resource")
+    @mock.patch.object(helpers.BaseHelper, "tenant_from_req")
+    def test_create_security_groups(self, m_tenant, m_create):
+        port1 = "443-443"
+        port2 = "8000-9000"
+        range = "0.0.0.0/32"
+        protocol = "tcp"
+        typein = "inbound"
+        typeout = "outbound"
+        rules = [{"ipversion": "IPv4", "port": port1,
+                  "range": range, "protocol": protocol, "type": typein
+                  },
+                 {"ipversion": "IPv4", "port": port2,
+                  "range": range, "protocol": protocol, "type": typeout}]
+        params = {"title": "testsecgroup", "rules": rules}
+        m_tenant.return_value = uuid.uuid4().hex
+        group_info = {"name": "group1", "id": uuid.uuid4().hex}
+        rules_out_1 = {"ethertype": "IPv4", "port_range_min": port1.split("-")[0],
+                       "port_range_max": port1.split("-")[1], "remote_ip_prefix": range,
+                       "protocol": protocol, "direction": "ingress"}
+        rules_out_2 = {"ethertype": "IPv4", "port_range_min": port2.split("-")[0],
+                       "port_range_max": port2.split("-")[1], "remote_ip_prefix": range,
+                       "protocol": protocol, "direction": "egress"}
+        m_create.side_effect = [group_info, rules_out_1, rules_out_2]
+        ret = self.helper.create_security_group(None, params)
+        expected = {"id": group_info["id"], "title": group_info["name"]}
+        expected["rules"] = rules
+        self.assertEqual(expected, ret[0])
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
+    def test_list_security_group(self, m_list):
+        rules1 = [{"ethertype": "IPv4", "port_range_min": "poo",
+                       "port_range_max": "poo", "remote_ip_prefix": "12.0.0.0/24",
+                       "protocol": "udp", "direction": "egress"},
+                 {"ethertype": "IPv4", "port_range_min": "pii",
+                       "port_range_max": "pii", "remote_ip_prefix": "11.0.0.0/24",
+                       "protocol": "tcp", "direction": "ingress"}
+                 ]
+        rules2 = [{"ethertype": "IPv4", "port_range_min": "55",
+                       "port_range_max": "66", "remote_ip_prefix": "0.0.0.0/24",
+                       "protocol": "icmp", "direction": "ingress"},
+                 {"ethertype": "IPv4", "port_range_min": "pii2",
+                       "port_range_max": "pii2", "remote_ip_prefix": "10.0.0.0/24",
+                       "protocol": "tcp", "direction": "egress"}
+                 ]
+        group1 = {"id": uuid.uuid4().hex, "title": uuid.uuid4().hex,
+                  "security_group_rules": rules1}
+        group2 = {"id": uuid.uuid4().hex, "title": uuid.uuid4().hex,
+                  "security_group_rules": rules2}
+        list_sec = [group1,  group2]
+        m_list.return_value = list_sec
+        ret = self.helper.list_security_groups(None)
+        self.assertEqual(2, ret.__len__())
+        self.assertEqual(group1["id"], ret[0]["id"])
+        self.assertEqual(group2["id"], ret[1]["id"])
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
+    def test_list_security_group_empty(self, m_list):
+        m_list.return_value = []
+        ret = self.helper.list_security_groups(None)
+        self.assertEqual(0, ret.__len__())
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
+    def test_show_security_group(self, m_list):
+        rules1 = [{"ethertype": "IPv4", "port_range_min": "poo",
+                       "port_range_max": "poo", "remote_ip_prefix": "12.0.0.0/24",
+                       "protocol": "udp", "direction": "egress"},
+                 {"ethertype": "IPv4", "port_range_min": "pii",
+                       "port_range_max": "pii", "remote_ip_prefix": "11.0.0.0/24",
+                       "protocol": "tcp", "direction": "ingress"}
+                 ]
+        group1 = {"id": uuid.uuid4().hex, "title": uuid.uuid4().hex,
+                  "security_group_rules": rules1}
+        list_sec = group1
+        m_list.return_value = list_sec
+        ret = self.helper.get_security_group_details(None, None)
+        self.assertEqual(group1["id"], ret[0]["id"])
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
+    def test_show_security_group_not_found(self, m_list):
+        m_list.return_value = []
+        self.assertRaises(exception.NotFound,
+                          self.helper.get_security_group_details,
+                          None,
+                          None)
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "delete_resource")
+    def test_delete_security_group(self, m_list):
+        m_list.return_value = None
+        ret = self.helper.delete_security_group(None, None)
+        self.assertIsNone(ret)
+
+    @mock.patch.object(helpers_neutron.OpenStackNeutron, "delete_resource")
+    def test_delete_security_group_not_found(self, m_list):
+        m_list.side_effect = exception.OCCIException()
+        self.assertRaises(exception.NotFound,
+                          self.helper.delete_security_group,
+                          None,
+                          None)
