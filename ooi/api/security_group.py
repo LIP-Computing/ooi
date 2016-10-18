@@ -152,13 +152,16 @@ class Controller(base.Controller):
                     ]
         attributes = process_parameters(req, scheme, required)
         name = attributes.get('occi.core.title')
-        rules = attributes.get('occi.securitygroup.rules')
-        net = self.os_helper.create_security_groups(req,
-                                                    name=name,
-                                                    rules=rules)
-        occi_network_resources = self._get_network_resources([net])
+        try:
+            rules = eval(attributes.get('occi.securitygroup.rules'))
+        except Exception as e:
+            raise exception.Invalid("Bad JSON format for occi.securitygroup.rules")
+        sec = self.os_helper.create_security_group(req,
+                                                   name=name,
+                                                   rules=rules)
+        occi_sec_resources = self._get_security_group_resources([sec])
         return collection.Collection(
-            resources=occi_network_resources)
+            resources=occi_sec_resources)
 
     def delete(self, req, id):
         """delete security groups which satisfy the parameters
