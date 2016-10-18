@@ -108,7 +108,7 @@ class Controller(base.Controller):
             for s in securitygroup_list:
                 s_rules = s['rules']
                 s_id = s["id"]
-                s_name = s["name"]
+                s_name = s["title"]
                 s = security_group.SecurityGroup(title=s_name,
                                                  id=s_id,
                                                  rules=s_rules)
