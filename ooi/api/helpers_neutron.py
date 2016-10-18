@@ -587,10 +587,10 @@ class OpenStackNeutron(helpers.BaseHelper):
             raise exception.NotFound()
 
     def create_security_group(self, req, parameters):
-        """Create security group
+        """Create security group with rules
 
         :param req: the incoming request
-        :param parameters: security group rules
+        :param parameters: security group parameters
         """
         try:
             tenant_id = self.tenant_from_req(req)
@@ -604,11 +604,17 @@ class OpenStackNeutron(helpers.BaseHelper):
             rules = parameters["rules"]
             secgroup["security_group_rules"] = []
             for rule in rules:
-                port_min, port_max = str(rule["port"]).split('-')  # cut by - and clean spaces
+                ports = str(rule["port"]).split('-')  # cut by - and clean spaces
+                if ports.__len__() == 1:
+                    port_min = port_max = ports[0]
+                elif ports.__len__() == 2:
+                    port_min, port_max = ports
+                else:
+                    raise exception.OCCIException("Port value")
                 param_rule = {
                     "ethertype": rule.get("ipversion", "IPv4"),
                     "description": rule.get("description", ""),
-                    "port_range_max": port_min,
+                    "port_range_max": port_max,
                     "port_range_min": port_min,
                     "direction": rule["type"],
                     "remote_ip_prefix": rule.get("range", "0.0.0.0/0"),

@@ -62,7 +62,7 @@ def security_group_rule_type(neutron_type):
 
 
 def build_security_group_from_neutron(sec_groups):
-    """Translate neutron security groups to ooi standard
+    """Translate neutron security group to ooi a standard
     security group format.
 
     :param sec_groups: array of security groups
@@ -79,9 +79,14 @@ def build_security_group_from_neutron(sec_groups):
                 rule["direction"]
             )
             rule_protocol = rule.get("protocol", None)
-            rule_port = "%s-%s" % (str(rule["port_range_min"]),
-                                   str(rule["port_range_max"])
-                                   )
+            port_min = rule["port_range_min"]
+            port_max = rule["port_range_max"]
+            if port_min and (port_min != port_max):
+                rule_port = "%s-%s" % (port_min,
+                                       port_max
+                                       )
+            else:
+                rule_port = port_min
             rule_range = str(rule["remote_ip_prefix"])
             rules_list.append({"type": rule_type,
                                "protocol": rule_protocol,

@@ -541,7 +541,7 @@ class TestNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "create_resource")
     @mock.patch.object(helpers.BaseHelper, "tenant_from_req")
     def test_create_security_groups(self, m_tenant, m_create):
-        port1 = "443-443"
+        port1 = "443"
         port2 = "8000-9000"
         range = "0.0.0.0/32"
         protocol = "tcp"
@@ -555,8 +555,8 @@ class TestNetOpenStackHelper(base.TestCase):
         params = {"title": "testsecgroup", "rules": rules}
         m_tenant.return_value = uuid.uuid4().hex
         group_info = {"name": "group1", "id": uuid.uuid4().hex}
-        rules_out_1 = {"ethertype": "IPv4", "port_range_min": port1.split("-")[0],
-                       "port_range_max": port1.split("-")[1], "remote_ip_prefix": range,
+        rules_out_1 = {"ethertype": "IPv4", "port_range_min": port1,
+                       "port_range_max": port1, "remote_ip_prefix": range,
                        "protocol": protocol, "direction": "ingress"}
         rules_out_2 = {"ethertype": "IPv4", "port_range_min": port2.split("-")[0],
                        "port_range_max": port2.split("-")[1], "remote_ip_prefix": range,
