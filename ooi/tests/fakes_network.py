@@ -157,80 +157,32 @@ network_links = {
 security_groups = {
     tenants["bar"]["id"]: [],
     tenants["foo"]["id"]: [
-        {"security_group": {
-            "project_id": tenants["foo"]["id"],
-            "tenant_id": tenants["foo"]["id"],
-            "description": "default",
-            "id": "85cc3048-abc3-43cc-89b3-377341426ac5",
-            "name": "default",
+        {
+            "name": "group1",
+            "id": uuid.uuid4().hex,
             "security_group_rules": [
-                {
-                    "direction": "egress",
-                    "ethertype": "IPv4",
-                    "id": uuid.uuid4().hex,
-                    "port_range_max": "null",
-                    "port_range_min": "null",
-                    "protocol": "null",
-                    "remote_group_id": "null",
-                    "remote_ip_prefix": "null",
-                    "security_group_id": uuid.uuid4().hex,
-                    "project_id": tenants["foo"]["id"],
-                    "tenant_id": tenants["foo"]["id"]
-                },
-                {
-                    "direction": "egress",
-                    "ethertype": "IPv4",
-                    "id": "93aa42e5-80db-4581-9391-3a608bd0e448",
-                    "port_range_max": "null",
-                    "port_range_min": "null",
-                    "protocol": "null",
-                    "remote_group_id": "null",
-                    "remote_ip_prefix": "null",
-                    "security_group_id": uuid.uuid4().hex,
-                    "project_id": tenants["foo"]["id"],
-                    "tenant_id": tenants["foo"]["id"]
-                }
+                {"ethertype": "IPv4", "port_range_min": 443,
+                 "port_range_max": 443, "remote_ip_prefix": "10.0.0.0/32",
+                 "protocol": "tcp", "direction": "ingress"},
+                {"ethertype": "IPv4", "port_range_min": "8000",
+                 "port_range_max": 9000, "remote_ip_prefix": "11.0.0.0/24",
+                 "protocol": "upd", "direction": "egress"}
+            ]
+        },
+        {
+            "name": "group2",
+            "id": uuid.uuid4().hex,
+            "security_group_rules": [
+                {"ethertype": "IPv4", "port_range_min": 80,
+                 "port_range_max": 80, "remote_ip_prefix": "10.0.0.0/32",
+                 "protocol": "tcp", "direction": "ingress"},
+                {"ethertype": "IPv4", "port_range_min": "5000",
+                 "port_range_max": 6000, "remote_ip_prefix": "11.0.0.0/24",
+                 "protocol": "upd", "direction": "egress"}
             ]
         }
-        },
-        {"security_group": {
-            "project_id": tenants["foo"]["id"],
-            "tenant_id": tenants["foo"]["id"],
-            "description": "default",
-            "id": "85cc3048-abc3-43cc-89b3-377341426ac5",
-            "name": "default",
-            "security_group_rules": [
-                {
-                    "direction": "egress",
-                    "ethertype": "IPv4",
-                    "id": uuid.uuid4().hex,
-                    "port_range_max": "null",
-                    "port_range_min": "null",
-                    "protocol": "null",
-                    "remote_group_id": "null",
-                    "remote_ip_prefix": "null",
-                    "security_group_id": uuid.uuid4().hex,
-                    "project_id": tenants["foo"]["id"],
-                    "tenant_id": tenants["foo"]["id"]
-                },
-                {
-                    "direction": "egress",
-                    "ethertype": "IPv4",
-                    "id": uuid.uuid4().hex,
-                    "port_range_max": "null",
-                    "port_range_min": "null",
-                    "protocol": "null",
-                    "remote_group_id": "null",
-                    "remote_ip_prefix": "null",
-                    "security_group_id": uuid.uuid4().hex,
-                    "project_id": tenants["foo"]["id"],
-                    "tenant_id": tenants["foo"]["id"]
-                }
-            ]
-        }
-        },
-    ]
 
+    ]
 }
 
 
@@ -293,7 +245,7 @@ def create_header_occi(params, category, project=None):
     att = ""
     if params is not None:
         for k, v in params.items():
-            att = "%s, %s=%s" % (att, k, v)
+            att = '%s, %s="%s"' % (att, k, v)
         headers["X_OCCI_Attribute"] = att
     if category is not None:
         cat = ""
