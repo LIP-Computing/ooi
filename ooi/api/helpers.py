@@ -1017,7 +1017,7 @@ class OpenStackHelper(BaseHelper):
         """
         raise exception.NotImplemented()
 
-    def create_security_groups(self, req, rules):
+    def create_security_group(self, req, rules):
         """Create security group
 
         :param req: the incoming request
