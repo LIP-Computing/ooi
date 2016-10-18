@@ -72,21 +72,22 @@ def build_security_group_from_neutron(sec_groups):
         ooi_sec = {}
         rules_list = []
         ooi_sec["id"] = sec["id"]
-        ooi_sec["name"] = sec.get("name", None)
-        #ooi_sec["ipversion"] = sec.get("ethertype", "IPv4")
+        ooi_sec["title"] = sec.get("name", None)
         for rule in sec["security_group_rules"]:
+            ipversion = rule.get("ethertype", "IPv4")
             rule_type = security_group_rule_type(
                 rule["direction"]
             )
             rule_protocol = rule.get("protocol", None)
-            rule_port = "%s-%s" % (str(rule["port_range_max"]),
-                                   str(rule["port_range_min"])
+            rule_port = "%s-%s" % (str(rule["port_range_min"]),
+                                   str(rule["port_range_max"])
                                    )
             rule_range = str(rule["remote_ip_prefix"])
-            rules_list.append({"type":rule_type,
-                               "protocol":rule_protocol,
+            rules_list.append({"type": rule_type,
+                               "protocol": rule_protocol,
                                "port": rule_port,
-                               "range": rule_range}
+                               "range": rule_range,
+                               "ipversion": ipversion}
                               )
         ooi_sec["rules"] = rules_list
         sec_list.append(ooi_sec)
