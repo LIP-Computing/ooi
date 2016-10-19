@@ -22,9 +22,11 @@ from ooi.occi import helpers
 
 class SecurityGroup(resource.Resource):
     attributes = attr.AttributeCollection(["occi.securitygroup.rules"])
+    actions = []  # In case it is None, header.ResourceRenderer fails
     kind = kind.Kind(helpers.build_scheme('infrastructure'), 'securitygroup',
-                     'security group resource', attributes, 'securitygroup/',
-                     related=[resource.Resource.kind])
+                     'securitygroup resource', attributes, 'securitygroup/',
+                     related=[resource.Resource.kind],
+                     actions=actions)
 
     def __init__(self, title, id, rules, summary=None, mixins=[]):
         super(SecurityGroup, self).__init__(title, mixins, summary=summary,
