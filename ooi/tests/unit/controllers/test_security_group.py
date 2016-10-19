@@ -45,6 +45,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
                          expected.__len__())
         for r in result.resources:
             self.assertIsInstance(r, occi_security_group.SecurityGroup)
+        m_list.assert_called_with(req)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_security_groups")
     def test_list_security_group_empty(self, m_list):
@@ -69,6 +70,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         expected = self.controller._get_security_group_resources(sec_group)[0]
         self.assertIsInstance(result, occi_security_group.SecurityGroup)
         self.assertEqual(result, expected)
+        m_list.assert_called_with(req, None)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group_not_found(self, m_list):
@@ -88,6 +90,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         m_list.return_value = None
         ret = self.controller.delete(None, None)
         self.assertIsNone(ret)
+        m_list.assert_called_with(None, 'security-groups',None)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "delete_security_group")
     def test_delete_security_group_not_found(self, m_list):
@@ -106,7 +109,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         )[0]
         params = {"occi.core.title": sec_group["title"],
                   "occi.securitygroup.rules": sec_group["rules"]
-                 }
+                  }
         categories = {occi_security_group.SecurityGroup.kind}
         req = fakes.create_req_test_occi(params, categories)
         m_create.return_value = [sec_group]
@@ -114,7 +117,8 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         expected = self.controller._get_security_group_resources([sec_group])
         self.assertIsInstance(ret.resources[0], occi_security_group.SecurityGroup)
         self.assertEqual(expected[0], ret.resources[0])
-        # TODO(jorgesece): check parameters of create_security_group in call
+        m_create.assert_called_with(req, {"title": sec_group["title"],
+                                          "rules": sec_group["rules"]})
 
     def test_create_error(self):
         test_networks = fakes.networks[fakes.tenants["foo"]["id"]]

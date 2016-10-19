@@ -552,8 +552,8 @@ class TestNetOpenStackHelper(base.TestCase):
         params = {"title": sec_group["name"], "rules": expected["rules"]}
         m_create.side_effect = [group_info, rules_out_1, rules_out_2]
         ret = self.helper.create_security_group(None, params)
-
         self.assertEqual(expected, ret[0])
+        self.assertEqual(3, m_create.call_count)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
     def test_list_security_group(self, m_list):
@@ -564,6 +564,8 @@ class TestNetOpenStackHelper(base.TestCase):
         ret = self.helper.list_security_groups(None)
         self.assertEqual(2, ret.__len__())
         self.assertEqual(expected, ret)
+        m_list.assert_called_with(None, 'security-groups',
+                                    response_resource="security_groups")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
     def test_list_security_group_empty(self, m_list):
@@ -571,6 +573,8 @@ class TestNetOpenStackHelper(base.TestCase):
         m_list.return_value = fakes.security_groups[tenant_id]
         ret = self.helper.list_security_groups(None)
         self.assertEqual(0, ret.__len__())
+        m_list.assert_called_with(None, 'security-groups',
+                                    response_resource="security_groups")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group(self, m_list):
@@ -581,6 +585,8 @@ class TestNetOpenStackHelper(base.TestCase):
         m_list.return_value = list_sec
         ret = self.helper.get_security_group_details(None, None)
         self.assertEqual(expected, ret)
+        m_list.assert_called_with(None, 'security-groups', None,
+                                    response_resource="security_group")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group_not_found(self, m_list):
@@ -595,6 +601,7 @@ class TestNetOpenStackHelper(base.TestCase):
         m_list.return_value = None
         ret = self.helper.delete_security_group(None, None)
         self.assertIsNone(ret)
+        m_list.assert_called_with(None, 'security-groups', None)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "delete_resource")
     def test_delete_security_group_not_found(self, m_list):
