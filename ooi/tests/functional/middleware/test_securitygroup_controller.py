@@ -17,10 +17,6 @@
 
 import mock
 
-import json
-import uuid
-import warnings
-
 from oslo_config import cfg
 import webob
 
@@ -129,23 +125,6 @@ class TestNetSecGroupController(test_middleware.TestMiddleware):
             self.assertEqual(204, resp.status_code)
             self.assertDefaults(resp)
 
-    # @mock.patch.object(helpers_neutron.OpenStackNeutron, "create_security_group")
-    # def test_create_security_groups(self, m_create):
-    #     tenant_id = fakes.tenants["foo"]["id"]
-    #     sec_group = openstack_helper.build_security_group_from_neutron(
-    #         fakes.security_groups[tenant_id]
-    #     )[0]
-    #     params = {"occi.core.title": sec_group["title"],
-    #               "occi.securitygroup.rules": sec_group["rules"]
-    #              }
-    #     categories = {occi_security_group.SecurityGroup.kind}
-    #     req = fakes.create_req_test_occi(params, categories)
-    #     m_create.return_value = sec_group
-    #     ret = self.controller.create(req, params)
-    #     expected = self.controller._get_security_group_resources([sec_group])
-    #     self.assertIsInstance(ret.resources[0], occi_security_group.SecurityGroup)
-    #     self.assertEqual(expected[0], ret.resources[0])
-
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_create_securitygroup(self, m):
         array_mocks = []
@@ -190,3 +169,12 @@ class TestNetSecGroupController(test_middleware.TestMiddleware):
                      utils.join_url(self.application_url + "/",
                                     "securitygroup/%s" % sc_id))]
         self.assertExpectedResult(expected, resp)
+
+class NetworkNovaControllerTextPlain(test_middleware.TestMiddlewareTextPlain,
+                                     TestNetSecGroupController):
+    """Test OCCI network controller with Accept: text/plain."""
+
+
+class NetworkNovaControllerTextOcci(test_middleware.TestMiddlewareTextOcci,
+                                    TestNetSecGroupController):
+    """Test OCCI network controller with Accept: text/occi."""
