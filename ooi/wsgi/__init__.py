@@ -25,6 +25,8 @@ import ooi.api.compute
 import ooi.api.network
 import ooi.api.network_link
 from ooi.api import query
+import ooi.api.securitygroup
+import ooi.api.securitygroup_link
 import ooi.api.storage
 import ooi.api.storage_link
 from ooi import config
@@ -245,6 +247,17 @@ class OCCIMiddleware(object):
             ooi.api.network.Controller, self.neutron_ooi_endpoint)
         self._setup_resource_routes("network",
                                     self.resources["network"])
+
+        self.resources["securitygrouplink"] = self._create_resource(
+            ooi.api.securitygroup_link.Controller)
+        self._setup_resource_routes("securitygrouplink",
+                                    self.resources["securitygrouplink"])
+
+        self.resources["securitygroup"] = self._create_resource_network(
+            ooi.api.securitygroup.Controller, self.neutron_ooi_endpoint)
+        self._setup_resource_routes("securitygroup",
+                                    self.resources["securitygroup"])
+
 
     @webob.dec.wsgify(RequestClass=Request)
     def __call__(self, req):
