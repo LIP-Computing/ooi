@@ -18,9 +18,9 @@ import mock
 
 from ooi.api import helpers_neutron
 from ooi.openstack import helpers as openstack_helper
-from ooi.api import security_group as security_group_api
+from ooi.api import securitygroup as security_group_api
 from ooi import exception
-from ooi.occi.infrastructure import security_group as occi_security_group
+from ooi.occi.infrastructure import securitygroup as occi_security_group
 from ooi.tests import base
 from ooi.tests import fakes_network as fakes
 
@@ -109,11 +109,12 @@ class TestSecurityGroupControllerNeutron(base.TestController):
                  }
         categories = {occi_security_group.SecurityGroup.kind}
         req = fakes.create_req_test_occi(params, categories)
-        m_create.return_value = sec_group
+        m_create.return_value = [sec_group]
         ret = self.controller.create(req, params)
         expected = self.controller._get_security_group_resources([sec_group])
         self.assertIsInstance(ret.resources[0], occi_security_group.SecurityGroup)
         self.assertEqual(expected[0], ret.resources[0])
+        # TODO(jorgesece): check parameters of create_security_group in call
 
     def test_create_error(self):
         test_networks = fakes.networks[fakes.tenants["foo"]["id"]]
