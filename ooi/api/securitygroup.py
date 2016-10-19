@@ -14,12 +14,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import simplejson
+import json
+
 from ooi.api import base
 from ooi.api import helpers
 from ooi.api import helpers_neutron
 from ooi import exception
 from ooi.occi.core import collection
-from ooi.occi.infrastructure import security_group
+from ooi.occi.infrastructure import securitygroup
 from ooi.occi import validator as occi_validator
 
 
@@ -106,10 +109,10 @@ class Controller(base.Controller):
         occi_securitygroup_resources = []
         if securitygroup_list:
             for s in securitygroup_list:
-                s_rules = s['rules']
+                s_rules = simplejson.dumps(s['rules']).replace('"', "'")
                 s_id = s["id"]
                 s_name = s["title"]
-                s = security_group.SecurityGroup(title=s_name,
+                s = securitygroup.SecurityGroup(title=s_name,
                                                  id=s_id,
                                                  rules=s_rules)
                 occi_securitygroup_resources.append(s)
@@ -145,7 +148,7 @@ class Controller(base.Controller):
         :param body: body request (not used)
         """
         scheme = {
-            "category": security_group.SecurityGroup.kind,
+            "category": securitygroup.SecurityGroup.kind,
         }
         required = ["occi.core.title",
                     "occi.securitygroup.rules",
@@ -156,10 +159,9 @@ class Controller(base.Controller):
             rules = eval(attributes.get('occi.securitygroup.rules'))
         except Exception as e:
             raise exception.Invalid("Bad JSON format for occi.securitygroup.rules")
-        sec = self.os_helper.create_security_group(req,
-                                                   name=name,
-                                                   rules=rules)
-        occi_sec_resources = self._get_security_group_resources([sec])
+        params = {"title": name, "rules": rules}
+        sec = self.os_helper.create_security_group(req, params)
+        occi_sec_resources = self._get_security_group_resources(sec)
         return collection.Collection(
             resources=occi_sec_resources)
 
@@ -180,7 +182,7 @@ class Controller(base.Controller):
         :param body: body
         """
         action = req.GET.get("action", None)
-        occi_actions = [a.term for a in security_group.SecurityGroup.actions]
+        occi_actions = [a.term for a in securitygroup.SecurityGroup.actions]
 
         if action is None or action not in occi_actions:
             raise exception.InvalidAction(action=action)
