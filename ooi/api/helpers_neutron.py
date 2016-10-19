@@ -122,8 +122,11 @@ class OpenStackNeutron(helpers.BaseHelper):
         to the response one.
         """
         single_resource = resource[:-1]
-        req_subnet = self._make_create_request(req, resource, parameters)
-        response_subnet = req_subnet.get_response()
+        req_neutron = self._make_create_request(
+            req, resource,
+            parameters,
+            resource_object_name=response_resource)
+        response_subnet = req_neutron.get_response()
         if not response_resource:
             response_resource = single_resource
         json_response = self.get_from_response(
@@ -595,12 +598,11 @@ class OpenStackNeutron(helpers.BaseHelper):
         try:
             tenant_id = self.tenant_from_req(req)
             param_group = {"tenant_id": tenant_id,
-                           "project_id": tenant_id,
                            "description": parameters.get("description", ""),
                            "name": parameters["title"],
                            }
             secgroup = self.create_resource(req, 'security-groups', param_group,
-                                            response_resource="security_group")
+                                              response_resource="security_group")
             sec_id = secgroup["id"]
             rules = parameters["rules"]
             secgroup["security_group_rules"] = []
@@ -614,10 +616,9 @@ class OpenStackNeutron(helpers.BaseHelper):
                     raise exception.OCCIException("Port value")
                 param_rule = {
                     "ethertype": rule.get("ipversion", "IPv4"),
-                    "description": rule.get("description", ""),
                     "port_range_max": port_max,
                     "port_range_min": port_min,
-                    "direction": rule["type"],
+                    "direction": os_helpers.security_group_rule_type(rule["type"]),
                     "remote_ip_prefix": rule.get("range", "0.0.0.0/0"),
                     "protocol": rule["protocol"],
                     "security_group_id": sec_id,
