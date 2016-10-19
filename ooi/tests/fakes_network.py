@@ -22,6 +22,7 @@ import webob.exc
 
 from ooi.api import network
 from ooi.api import network_link
+from ooi.openstack import helpers as os_helpers
 from ooi import wsgi
 
 
@@ -396,6 +397,37 @@ def build_occi_nova(network):
         'occi.network.state="%s"' % status,
         'occi.network.address="%s"' % cidr,
         'occi.network.gateway="%s"' % gateway,
+        ]
+    result = []
+    for c in cats:
+        result.append(("Category", c))
+    for a in attrs:
+        result.append(("X-OCCI-Attribute", a))
+    for l in links:
+        result.append(("Link", l))
+    return result
+
+
+def build_occi_securitygroup(s):
+    secgroup = os_helpers.build_security_group_from_neutron([s])[0]
+    name = secgroup["title"]
+    secgroup_id = secgroup["id"]
+    rules = secgroup["rules"]
+    app_url = application_url
+    cats = []
+    cats.append('securitygroup; '
+                'scheme='
+                '"http://schemas.ogf.org/occi/infrastructure#";'
+                ' class="kind"; title="securitygroup resource";'
+                ' rel='
+                '"http://schemas.ogf.org/occi/core#resource";'
+                ' location="%s/securitygroup/"' % app_url)
+    links = []
+
+    attrs = [
+        'occi.core.id="%s"' % secgroup_id,
+        'occi.core.title="%s"' % name,
+        'occi.securitygroup.rules="%s"' % json.dumps(rules).replace('"', "'"),
         ]
     result = []
     for c in cats:
