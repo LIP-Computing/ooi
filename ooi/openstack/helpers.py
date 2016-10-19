@@ -57,8 +57,14 @@ def security_group_rule_type(neutron_type):
     """
     if neutron_type == "ingress":
         return "inbound"
-    else:
+    elif neutron_type == "egress":
         return "outbound"
+    elif neutron_type == "inbound":
+        return "ingress"
+    elif neutron_type == "outbound":
+        return "egress"
+    else:
+        return None
 
 
 def build_security_group_from_neutron(sec_groups):
