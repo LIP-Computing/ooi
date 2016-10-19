@@ -17,9 +17,9 @@ from ooi.tests.integration import  TestIntegration
 
 from ooi import exception
 from ooi.wsgi import Request
-from ooi.api import security_group as security_group_controller
+from ooi.api import securitygroup as security_group_controller
 from ooi.api import query
-from ooi.occi.infrastructure import security_group
+from ooi.occi.infrastructure import securitygroup
 from ooi.tests.integration.keystone.session import KeySession
 from ooi.tests import fakes_network as fakes
 from ooi import wsgi
@@ -43,12 +43,12 @@ class TestIntegrationSecGroups(TestIntegration):
 
     def test_list(self):
         list = self.controller.index(self.req)
-        self.assertIsInstance(list.resources[0], security_group.SecurityGroup)
+        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroup)
 
     def test_show(self):
         htts_sec = "b86534fa-2435-4d6c-b0d7-ad77f24411e0"
         resources = self.controller.show(self.req, htts_sec)
-        self.assertIsInstance(resources, security_group.SecurityGroup)
+        self.assertIsInstance(resources, securitygroup.SecurityGroup)
 
 
 # class TestMiddleware(TestIntegration):
