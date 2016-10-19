@@ -20,9 +20,10 @@ from ooi.wsgi import Request
 from ooi.api import securitygroup as security_group_controller
 from ooi.api import query
 from ooi.occi.infrastructure import securitygroup
+from ooi.openstack import helpers as os_helpers
 from ooi.tests.integration.keystone.session import KeySession
 from ooi.tests import fakes_network as fakes
-from ooi import wsgi
+from ooi import utils
 from ooi.tests.integration.keystone import session
 
 
@@ -50,6 +51,24 @@ class TestIntegrationSecGroups(TestIntegration):
         resources = self.controller.show(self.req, htts_sec)
         self.assertIsInstance(resources, securitygroup.SecurityGroup)
 
+    # def test_create_securitygroup(self):
+    #     tenant_id = fakes.tenants["foo"]["id"]
+    #     sec_group = os_helpers.build_security_group_from_neutron(
+    #         fakes.security_groups[tenant_id]
+    #     )[0]
+    #     params = {"occi.core.title": "testgroup",
+    #               "occi.securitygroup.rules": sec_group["rules"]
+    #               }
+    #     categories = {securitygroup.SecurityGroup.kind}
+    #     occi_headers = fakes.create_header_occi(params, categories)
+    #     self.req.headers.update(occi_headers)
+    #     ret = self.controller.create(self.req, params)
+    #     expected = self.controller._get_security_group_resources([sec_group])
+    #
+    # def test_delete(self):
+    #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
+    #     resources = self.controller.delete(self.req, htts_sec)
+    #     self.assertEqual([], resources)
 
 # class TestMiddleware(TestIntegration):
 #     def setUp(self):
