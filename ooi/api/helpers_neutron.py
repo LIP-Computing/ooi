@@ -599,7 +599,8 @@ class OpenStackNeutron(helpers.BaseHelper):
                            "description": parameters.get("description", ""),
                            "name": parameters["title"],
                            }
-            secgroup = self.create_resource(req, 'security-groups', param_group)
+            secgroup = self.create_resource(req, 'security-groups', param_group,
+                                            response_resource="security_group")
             sec_id = secgroup["id"]
             rules = parameters["rules"]
             secgroup["security_group_rules"] = []
@@ -621,7 +622,8 @@ class OpenStackNeutron(helpers.BaseHelper):
                     "protocol": rule["protocol"],
                     "security_group_id": sec_id,
                 }
-                secrule = self.create_resource(req, 'security-group-rules', param_rule)
+                secrule = self.create_resource(req, 'security-group-rules', param_rule,
+                                               response_resource="security_group_rule")
                 secgroup["security_group_rules"].append(secrule)
             ooi_sec = os_helpers.build_security_group_from_neutron(
                [secgroup]
