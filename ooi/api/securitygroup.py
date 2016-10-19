@@ -158,7 +158,8 @@ class Controller(base.Controller):
         try:
             rules = eval(attributes.get('occi.securitygroup.rules'))
         except Exception as e:
-            raise exception.Invalid("Bad JSON format for occi.securitygroup.rules")
+            raise exception.Invalid("Bad JSON format for occi.securitygroup.rules: %s"
+                                    % attributes.get('occi.securitygroup.rules'))
         params = {"title": name, "rules": rules}
         sec = self.os_helper.create_security_group(req, params)
         occi_sec_resources = self._get_security_group_resources(sec)
