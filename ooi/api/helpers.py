@@ -197,17 +197,21 @@ class BaseHelper(object):
         return self._get_req(req, path=path,
                              query_string=query_string, method="GET")
 
-    def _make_create_request(self, req, resource, parameters):
+    def _make_create_request(self, req, resource, parameters,
+                             resource_object_name=None):
         """Create CREATE request
 
         This method creates a CREATE Request instance
 
         :param req: the incoming request
         :param parameters: parameters with values
+        :param resource_object_name: in case resource name is different
+        to the response one.
         """
         path = "/%s" % resource
-        single_resource = resource[:-1]
-        body = utils.make_body(single_resource, parameters)
+        if not resource_object_name:
+            resource_object_name = resource[:-1]
+        body = utils.make_body(resource_object_name, parameters)
         return self._get_req(req, path=path,
                              content_type="application/json",
                              body=json.dumps(body), method="POST")

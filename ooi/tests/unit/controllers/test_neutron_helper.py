@@ -203,7 +203,8 @@ class TestNetOpenStackHelper(base.TestCase):
         m.return_value = req_mock
         ret = self.helper.create_resource(None, 'networks', parameters)
         self.assertEqual(net_id, ret["network_id"])
-        m.assert_called_with(None, "networks", parameters)
+        m.assert_called_with(None, "networks", parameters,
+                             resource_object_name=None)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
                        "_make_create_request")
@@ -235,7 +236,8 @@ class TestNetOpenStackHelper(base.TestCase):
         self.assertEqual(net_id, ret["id"])
         ret2 = self.helper.create_resource(None, 'subnets', parameters)
         self.assertEqual(subnet_id, ret2["id"])
-        m.assert_called_with(None, "subnets", parameters)
+        m.assert_called_with(None, "subnets", parameters,
+                             resource_object_name=None)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "_get_req")
     def test_create_resource_net_subnet_req(self, m):
@@ -565,7 +567,7 @@ class TestNetOpenStackHelper(base.TestCase):
         self.assertEqual(2, ret.__len__())
         self.assertEqual(expected, ret)
         m_list.assert_called_with(None, 'security-groups',
-                                    response_resource="security_groups")
+                                  response_resource="security_groups")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
     def test_list_security_group_empty(self, m_list):
@@ -574,7 +576,7 @@ class TestNetOpenStackHelper(base.TestCase):
         ret = self.helper.list_security_groups(None)
         self.assertEqual(0, ret.__len__())
         m_list.assert_called_with(None, 'security-groups',
-                                    response_resource="security_groups")
+                                  response_resource="security_groups")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group(self, m_list):
@@ -586,7 +588,7 @@ class TestNetOpenStackHelper(base.TestCase):
         ret = self.helper.get_security_group_details(None, None)
         self.assertEqual(expected, ret)
         m_list.assert_called_with(None, 'security-groups', None,
-                                    response_resource="security_group")
+                                  response_resource="security_group")
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group_not_found(self, m_list):
