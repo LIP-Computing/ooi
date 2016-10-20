@@ -1012,22 +1012,85 @@ class OpenStackHelper(BaseHelper):
         :param req: the incoming request
         :param sec_id: security group id to show
         """
-        raise exception.NotImplemented()
+        path = "os-security-groups"
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/%s/%s" % (tenant_id, path, sec_id)
+        os_req = self._get_req(req, path=path,
+                               method="GET")
+        response = os_req.get_response(self.app)
+        nets = self.get_from_response(response, "security_group", [])
+        ooi_sec = os_helpers.build_security_group_from_nova([nets])
+        return ooi_sec
 
     def list_security_groups(self, req):
         """List security groups
 
         :param req: the incoming request
         """
-        raise exception.NotImplemented()
+        path = "os-security-groups"
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/%s" % (tenant_id, path)
+        os_req = self._get_req(req, path=path,
+                               method="GET")
+        response = os_req.get_response(self.app)
+        nets = self.get_from_response(response, "security_groups", [])
+        ooi_sec = os_helpers.build_security_group_from_nova(nets)
+        return ooi_sec
 
-    def create_security_group(self, req, rules):
+    def create_security_group(self, req, parameters):
         """Create security group
 
         :param req: the incoming request
-        :param rules: security group rules
+        :param parameters: security group parameters
         """
-        raise exception.NotImplemented()
+        try:
+            tenant_id = self.tenant_from_req(req)
+            path = "os-security-groups"
+            path = "/%s/%s" % (tenant_id, path)
+            param_group = {
+                "description": parameters.get("description", ""),
+                "name": parameters["title"],
+            }
+            body = utils.make_body('security_group', param_group)
+            os_req = self._get_req(req,
+                                 path=path,
+                                 content_type="application/json",
+                                 body=json.dumps(body),
+                                 method="POST")
+            response_group = os_req.get_response(self.app)
+            secgroup = self.get_from_response(
+                response_group, "security_group", {})
+            sec_id = secgroup["id"]
+            rules = parameters["rules"]
+            secgroup["rules"] = []
+            for rule in rules:
+                port_min, port_max = os_helpers.security_group_rule_port(
+                    rule["port"]
+                )
+                param_rules = {
+                    "parent_group_id": sec_id,
+                    "ip_protocol": rule["protocol"],
+                    "from_port": port_min,
+                    "to_port": port_max,
+                    "cidr": rule.get("range", "0.0.0.0/0")
+                }
+                body_rules = utils.make_body('security_group_rule', param_rules)
+                path = "/%s/os-security-group-rules" % (tenant_id)
+                os_req_rules = self._get_req(req,
+                                             path=path,
+                                             content_type="application/json",
+                                             body=json.dumps(body_rules),
+                                             method="POST")
+                response_rules = os_req_rules.get_response(self.app)
+                secrules = self.get_from_response(
+                    response_rules, "security_group_rule", {})
+                secgroup["rules"].append(secrules)
+            ooi_sec = os_helpers.build_security_group_from_nova(
+                [secgroup]
+            )
+            return ooi_sec
+        except Exception as ex:
+            raise ex
 
     def delete_security_group(self, req, sec_id):
         """Delete info about a security group.
@@ -1035,4 +1098,10 @@ class OpenStackHelper(BaseHelper):
         :param req: the incoming request
         :param sec_id: security group id to delete
         """
-        raise exception.NotImplemented()
+        path = "os-security-groups"
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/%s/%s" % (tenant_id, path, sec_id)
+        os_req = self._get_req(req, path=path,
+                               method="DELETE")
+        response = os_req.get_response(self.app)
+        return []
