@@ -153,17 +153,17 @@ class Controller(base.Controller):
             "category": securitygroup.SecurityGroup.kind,
         }
         required = ["occi.core.title",
-                    "occi.securitygroup.rules",
+                    "occi.securitygroup.rules"
                     ]
         attributes = process_parameters(req, scheme, required)
         name = attributes.get('occi.core.title')
+        description = attributes.get("occi.core.summary", "")
         try:
             rules = eval(attributes.get('occi.securitygroup.rules'))
         except Exception as e:
             raise exception.Invalid("Bad JSON format for occi.securitygroup.rules: %s"
                                     % attributes.get('occi.securitygroup.rules'))
-        params = {"title": name, "rules": rules}
-        sec = self.os_helper.create_security_group(req, params)
+        sec = self.os_helper.create_security_group(req, name, description, rules)
         occi_sec_resources = self._get_security_group_resources(sec)
         return collection.Collection(
             resources=occi_sec_resources)

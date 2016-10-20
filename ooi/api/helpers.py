@@ -1037,31 +1037,32 @@ class OpenStackHelper(BaseHelper):
         ooi_sec = os_helpers.build_security_group_from_nova(nets)
         return ooi_sec
 
-    def create_security_group(self, req, parameters):
+    def create_security_group(self, req, name, description, rules):
         """Create security group
 
         :param req: the incoming request
-        :param parameters: security group parameters
+        :param name: security group name
+        :param description: security group description
+        :param rules: security group rules
         """
         try:
             tenant_id = self.tenant_from_req(req)
             path = "os-security-groups"
             path = "/%s/%s" % (tenant_id, path)
             param_group = {
-                "description": parameters.get("description", ""),
-                "name": parameters["title"],
+                "description": description,
+                "name": name,
             }
             body = utils.make_body('security_group', param_group)
             os_req = self._get_req(req,
-                                 path=path,
-                                 content_type="application/json",
-                                 body=json.dumps(body),
-                                 method="POST")
+                                   path=path,
+                                   content_type="application/json",
+                                   body=json.dumps(body),
+                                   method="POST")
             response_group = os_req.get_response(self.app)
             secgroup = self.get_from_response(
                 response_group, "security_group", {})
             sec_id = secgroup["id"]
-            rules = parameters["rules"]
             secgroup["rules"] = []
             for rule in rules:
                 port_min, port_max = os_helpers.security_group_rule_port(

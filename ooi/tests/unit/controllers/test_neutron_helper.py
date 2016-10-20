@@ -552,11 +552,10 @@ class TestNetOpenStackHelper(base.TestCase):
                       "description": sec_group["description"]}
         rules_out_1 = sec_group["security_group_rules"][0]
         rules_out_2 = sec_group["security_group_rules"][1]
-        params = {"title": sec_group["name"],
-                  ""
-                  "rules": expected["rules"]}
         m_create.side_effect = [group_info, rules_out_1, rules_out_2]
-        ret = self.helper.create_security_group(None, params)
+        ret = self.helper.create_security_group(None, expected["title"],
+                                                expected["summary"],
+                                                expected["rules"])
         self.assertEqual(expected, ret[0])
         self.assertEqual(3, m_create.call_count)
 

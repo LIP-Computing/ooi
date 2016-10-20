@@ -365,7 +365,7 @@ class OpenStackNeutron(helpers.BaseHelper):
             net["subnet_info"] = self.create_resource(
                 req, 'subnets', subnet_param)
 
-        # INTERFACE and ROUTER information is agnostic to the user
+            # INTERFACE and ROUTER information is agnostic to the user
             net_public = self._get_public_network(req)
             attributes_router = {"external_gateway_info": {
                 "network_id": net_public}
@@ -568,7 +568,7 @@ class OpenStackNeutron(helpers.BaseHelper):
             secgroup = self.get_resource(req, 'security-groups', sec_id,
                                          response_resource="security_group")
             ooi_sec = os_helpers.build_security_group_from_neutron(
-               [secgroup]
+                [secgroup]
             )
             return ooi_sec
         except Exception as e:
@@ -589,22 +589,23 @@ class OpenStackNeutron(helpers.BaseHelper):
         except Exception as e:
             raise exception.NotFound()
 
-    def create_security_group(self, req, parameters):
-        """Create security group with rules
+    def create_security_group(self, req, name, description, rules):
+        """Create security group
 
         :param req: the incoming request
-        :param parameters: security group parameters
+        :param name: security group name
+        :param description: security group description
+        :param rules: security group rules
         """
         try:
             tenant_id = self.tenant_from_req(req)
             param_group = {"tenant_id": tenant_id,
-                           "description": parameters.get("description", ""),
-                           "name": parameters["title"],
+                           "description": description,
+                           "name": name,
                            }
             secgroup = self.create_resource(req, 'security-groups', param_group,
-                                              response_resource="security_group")
+                                            response_resource="security_group")
             sec_id = secgroup["id"]
-            rules = parameters["rules"]
             secgroup["security_group_rules"] = []
             for rule in rules:
                 port_min, port_max = os_helpers.security_group_rule_port(
@@ -623,7 +624,7 @@ class OpenStackNeutron(helpers.BaseHelper):
                                                response_resource="security_group_rule")
                 secgroup["security_group_rules"].append(secrule)
             ooi_sec = os_helpers.build_security_group_from_neutron(
-               [secgroup]
+                [secgroup]
             )
             return ooi_sec
         except Exception as ex:
