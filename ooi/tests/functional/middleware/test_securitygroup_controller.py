@@ -310,6 +310,7 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
                                     "securitygroup/%s" % sc_id))]
         self.assertExpectedResult(expected, resp)
 
+
 class NetworkNovaControllerTextPlain(test_middleware.TestMiddlewareTextPlain,
                                      TestNetSecGroupControllerNova):
     """Test OCCI network controller with Accept: text/plain."""

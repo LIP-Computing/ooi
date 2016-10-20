@@ -68,6 +68,7 @@ def security_group_rule_type(neutron_type):
     else:
         return None
 
+
 def security_group_rule_port(os_port):
     """Translate openstack rule port
 
@@ -84,9 +85,11 @@ def security_group_rule_port(os_port):
         raise Exception("Port value")
     return port_min, port_max
 
+
 def build_security_group_from_neutron(sec_groups):
-    """Translate neutron security group to ooi a standard
-    security group format.
+    """Translate neutron security group
+
+     Translate to the ooi a standard security group format.
 
     :param sec_groups: array of security groups
     """
@@ -124,8 +127,9 @@ def build_security_group_from_neutron(sec_groups):
 
 
 def build_security_group_from_nova(sec_groups):
-    """Translate nova security group to ooi a standard
-    security group format.
+    """Translate nova security group
+
+    Translate to the ooi a standard security group format.
 
     :param sec_groups: array of security groups
     """

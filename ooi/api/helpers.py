@@ -1075,7 +1075,8 @@ class OpenStackHelper(BaseHelper):
                     "to_port": port_max,
                     "cidr": rule.get("range", "0.0.0.0/0")
                 }
-                body_rules = utils.make_body('security_group_rule', param_rules)
+                body_rules = utils.make_body('security_group_rule',
+                                             param_rules)
                 path = "/%s/os-security-group-rules" % (tenant_id)
                 os_req_rules = self._get_req(req,
                                              path=path,
@@ -1104,5 +1105,5 @@ class OpenStackHelper(BaseHelper):
         path = "/%s/%s/%s" % (tenant_id, path, sec_id)
         os_req = self._get_req(req, path=path,
                                method="DELETE")
-        response = os_req.get_response(self.app)
+        os_req.get_response(self.app)
         return []

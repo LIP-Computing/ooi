@@ -76,7 +76,9 @@ class OpenStackNeutron(helpers.BaseHelper):
                                          att_public)
         return net_public[0]["id"]
 
-    def list_resources(self, req, resource, parameters=None, response_resource=None):
+    def list_resources(self, req,
+                       resource, parameters=None,
+                       response_resource=None):
         """List resources.
 
         It returns json code from the server
@@ -571,7 +573,7 @@ class OpenStackNeutron(helpers.BaseHelper):
                 [secgroup]
             )
             return ooi_sec[0]
-        except Exception as e:
+        except Exception:
             raise exception.NotFound()
 
     def list_security_groups(self, req):
@@ -586,7 +588,7 @@ class OpenStackNeutron(helpers.BaseHelper):
                 secgroup
             )
             return ooi_sec
-        except Exception as e:
+        except Exception:
             raise exception.NotFound()
 
     def create_security_group(self, req, name, description, rules):
@@ -603,8 +605,9 @@ class OpenStackNeutron(helpers.BaseHelper):
                            "description": description,
                            "name": name,
                            }
-            secgroup = self.create_resource(req, 'security-groups', param_group,
-                                            response_resource="security_group")
+            secgroup = self.create_resource(
+                req, 'security-groups', param_group,
+                response_resource="security_group")
             sec_id = secgroup["id"]
             secgroup["security_group_rules"] = []
             for rule in rules:
@@ -615,13 +618,16 @@ class OpenStackNeutron(helpers.BaseHelper):
                     "ethertype": rule.get("ipversion", "IPv4"),
                     "port_range_max": port_max,
                     "port_range_min": port_min,
-                    "direction": os_helpers.security_group_rule_type(rule["type"]),
+                    "direction": os_helpers.security_group_rule_type(
+                        rule["type"]),
                     "remote_ip_prefix": rule.get("range", "0.0.0.0/0"),
                     "protocol": rule["protocol"],
                     "security_group_id": sec_id,
                 }
-                secrule = self.create_resource(req, 'security-group-rules', param_rule,
-                                               response_resource="security_group_rule")
+                secrule = self.create_resource(
+                    req,
+                    'security-group-rules', param_rule,
+                    response_resource="security_group_rule")
                 secgroup["security_group_rules"].append(secrule)
             ooi_sec = os_helpers.build_security_group_from_neutron(
                 [secgroup]

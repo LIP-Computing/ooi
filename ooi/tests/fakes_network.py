@@ -22,7 +22,6 @@ import webob.exc
 
 from ooi.api import network
 from ooi.api import network_link
-from ooi.openstack import helpers as os_helpers
 from ooi import wsgi
 
 

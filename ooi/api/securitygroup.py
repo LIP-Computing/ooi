@@ -14,7 +14,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import simplejson
 import json
 
 from ooi.api import base
@@ -109,7 +108,7 @@ class Controller(base.Controller):
         occi_securitygroup_resources = []
         if securitygroup_list:
             for s in securitygroup_list:
-                s_rules = simplejson.dumps(s['rules']).replace('"', "'")
+                s_rules = json.dumps(s['rules']).replace('"', "'")
                 s_id = s["id"]
                 s_name = s["title"]
                 s_summary = s["summary"]
@@ -160,10 +159,14 @@ class Controller(base.Controller):
         description = attributes.get("occi.core.summary", "")
         try:
             rules = eval(attributes.get('occi.securitygroup.rules'))
-        except Exception as e:
-            raise exception.Invalid("Bad JSON format for occi.securitygroup.rules: %s"
-                                    % attributes.get('occi.securitygroup.rules'))
-        sec = self.os_helper.create_security_group(req, name, description, rules)
+        except Exception:
+            raise exception.Invalid(
+                "Bad JSON format for occi.securitygroup.rules: %s"
+                % attributes.get(
+                    'occi.securitygroup.rules'))
+        sec = self.os_helper.create_security_group(
+            req, name, description, rules
+        )
         occi_sec_resources = self._get_security_group_resources([sec])
         return collection.Collection(
             resources=occi_sec_resources)

@@ -262,10 +262,10 @@ security_groups = {
             "rules": [
                 {"from_port": 443,
                  "to_port": 443, "ip_range": {"cidr": "10.0.0.0/32"},
-                 "ip_protocol": "tcp",},
+                 "ip_protocol": "tcp"},
                 {"from_port": "1000",
                  "to_port": 2000, "ip_range": {"cidr": "11.0.0.0/32"},
-                 "ip_protocol": "udp",},
+                 "ip_protocol": "udp"},
             ]
         },
         {
@@ -275,16 +275,15 @@ security_groups = {
             "rules": [
                 {"from_port": 80,
                  "to_port": 80, "ip_range": {"cidr": "10.0.0.0/32"},
-                 "ip_protocol": "tcp",},
+                 "ip_protocol": "tcp"},
                 {"from_port": "4000",
                  "to_port": 7000, "ip_range": {"cidr": "13.0.0.0/32"},
-                 "ip_protocol": "udp",},
+                 "ip_protocol": "udp"},
             ]
         }
 
     ]
 }
-
 
 
 def fake_query_results():
