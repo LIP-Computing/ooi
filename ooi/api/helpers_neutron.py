@@ -607,13 +607,9 @@ class OpenStackNeutron(helpers.BaseHelper):
             rules = parameters["rules"]
             secgroup["security_group_rules"] = []
             for rule in rules:
-                ports = str(rule["port"]).split('-')  # cut by - and clean spaces
-                if ports.__len__() == 1:
-                    port_min = port_max = ports[0]
-                elif ports.__len__() == 2:
-                    port_min, port_max = ports
-                else:
-                    raise exception.OCCIException("Port value")
+                port_min, port_max = os_helpers.security_group_rule_port(
+                    rule["port"]
+                )
                 param_rule = {
                     "ethertype": rule.get("ipversion", "IPv4"),
                     "port_range_max": port_max,
