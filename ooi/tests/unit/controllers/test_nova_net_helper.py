@@ -20,8 +20,10 @@ import uuid
 import mock
 
 from ooi.api import helpers
+from ooi.openstack import helpers as os_helpers
 from ooi.tests import base
-from ooi.tests import fakes_network as fakes
+from ooi.tests import fakes_network
+from ooi.tests import fakes as fakes_nova
 from ooi import utils
 
 
@@ -35,10 +37,10 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
-        resp_float = fakes.create_fake_json_resp(
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
         req_mock_float = mock.MagicMock()
@@ -51,10 +53,10 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_no_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
-        resp_float = fakes.create_fake_json_resp(
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": []}, 204
         )
         req_mock_float = mock.MagicMock()
@@ -69,8 +71,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         id = uuid.uuid4().hex
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes.create_fake_json_resp({"networks": [{"id": id}]}, 200)
-        resp_float = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
         req_mock = mock.MagicMock()
@@ -105,7 +107,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         label = "network11"
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp(
             {"network": {"id": id, "label": label,
                          "cidr": address,
                          "gateway": gateway}}, 200
@@ -136,7 +138,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
                       "cidr": cidr,
                       "gateway": gateway
                       }
-        resp = fakes.create_fake_json_resp(
+        resp = fakes_network.create_fake_json_resp(
             {"network": {"id": net_id, "label": name,
                          "cidr": cidr,
                          "gateway": gateway}}, 200
@@ -176,3 +178,112 @@ class TestNovaNetOpenStackHelper(base.TestCase):
             None, method="DELETE",
             path="/%s/os-networks/%s" % (tenant_id, net_id),
         )
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_list_security_groups(self, m_t, m_rq):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        m_t.return_value = tenant_id
+        sc_groups = fakes_nova.security_groups[tenant_id]
+        resp = fakes_network.create_fake_json_resp({"security_groups": sc_groups}, 200)
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        m_rq.side_effect = [req_mock]
+        ret = self.helper.list_security_groups(None)
+        cont = 0
+        for sc in sc_groups:
+            self.assertEqual(sc['id'], ret[cont]['id'])
+            cont = cont + 1
+        self.assertEqual(
+            {'method': 'GET',
+             'path': '/%s/os-security-groups' % (tenant_id)},
+            m_rq.call_args_list[0][1]
+        )
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_delete_security_groups(self, m_t, m_rq):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        m_t.return_value = tenant_id
+        sc_id = fakes_nova.security_groups[tenant_id][0]['id']
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = []
+        m_rq.return_value = req_mock
+        ret = self.helper.delete_security_group(None, sc_id)
+        self.assertEqual(ret, [])
+        m_rq.assert_called_with(
+            None, method="DELETE",
+            path="/%s/os-security-groups/%s" % (tenant_id, sc_id),
+        )
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_get_security_group(self, m_t, m_rq):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        m_t.return_value = tenant_id
+        sc_group = fakes_nova.security_groups[tenant_id][0]
+        id = sc_group['id']
+        m_t.return_value = tenant_id
+        resp = fakes_network.create_fake_json_resp(
+            {"security_group": sc_group}, 200
+        )
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        m_rq.return_value = req_mock
+        ret = self.helper.get_security_group_details(None, id)
+        self.assertEqual(sc_group['id'], ret["id"])
+        self.assertEqual(sc_group['description'], ret["summary"])
+        occi_os_group = os_helpers.build_security_group_from_nova(
+            fakes_nova.security_groups[tenant_id]
+        )[0]
+        cont = 0
+        for r in ret["rules"]:
+            self.assertEqual(occi_os_group['rules'][cont]['protocol'], r["protocol"])
+            self.assertEqual(occi_os_group['rules'][cont]['range'], r["range"])
+            self.assertEqual(occi_os_group['rules'][cont]['port'], r["port"])
+            self.assertEqual(occi_os_group['rules'][cont]['type'], r["type"])
+            cont += 1
+
+        m_rq.assert_called_with(
+            None, method="GET",
+            path="/%s/os-security-groups/%s" % (tenant_id, id),
+            )
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_create_security_group(self, m_t, m_rq):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        m_t.return_value = tenant_id
+        sc_group = fakes_nova.security_groups[tenant_id][0]
+        occi_os_group = os_helpers.build_security_group_from_nova(
+            fakes_nova.security_groups[tenant_id]
+        )[0]
+        resp = fakes_network.create_fake_json_resp(
+            {"security_group": sc_group}, 200
+        )
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        resp_rule1 = fakes_network.create_fake_json_resp(
+            {"security_group_rule": sc_group['rules'][0]}, 200
+        )
+        req_mock_rule1 = mock.MagicMock()
+        req_mock_rule1.get_response.return_value = resp_rule1
+        resp_rule2 = fakes_network.create_fake_json_resp(
+            {"security_group_rule": sc_group['rules'][1]}, 200
+        )
+        req_mock_rule2 = mock.MagicMock()
+        req_mock_rule2.get_response.return_value = resp_rule2
+        m_rq.side_effect = [req_mock, req_mock_rule1, req_mock_rule2]
+        ret = self.helper.create_security_group(None,
+                                         name=occi_os_group['title'],
+                                         description=occi_os_group['summary'],
+                                         rules=occi_os_group['rules']
+                                         )
+        cont = 0
+        for r in ret["rules"]:
+            self.assertEqual(occi_os_group['rules'][cont]['protocol'], r["protocol"])
+            self.assertEqual(occi_os_group['rules'][cont]['range'], r["range"])
+            self.assertEqual(occi_os_group['rules'][cont]['port'], r["port"])
+            self.assertEqual(occi_os_group['rules'][cont]['type'], r["type"])
+            cont += 1
+
