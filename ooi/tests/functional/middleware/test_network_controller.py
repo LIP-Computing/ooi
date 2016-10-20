@@ -36,7 +36,6 @@ class TestNetNeutronController(test_middleware.TestMiddleware):
     def setUp(self):
         super(TestNetNeutronController, self).setUp()
         self.schema = 'http://schemas.ogf.org/occi/infrastructure#network'
-        self.accept = self.content_type = None
         self.application_url = fakes.application_url
         neutron_ooi_endpoint = "foo"
 
