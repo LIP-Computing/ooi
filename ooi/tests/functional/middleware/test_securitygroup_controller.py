@@ -146,8 +146,8 @@ class TestNetSecGroupController(test_middleware.TestMiddleware):
         sc_id = fake_sc["id"]
         fake_occi_rules = os_helpers.build_security_group_from_neutron(
             [fake_sc]
-        )
-        rules = str(fake_occi_rules[0]["rules"])
+        )[0]
+        rules = str(fake_occi_rules["rules"])
         headers = {
             'Category': 'securitygroup;'
                         ' scheme='

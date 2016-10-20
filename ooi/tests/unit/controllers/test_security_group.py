@@ -65,7 +65,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
             [fakes.security_groups[tenant_id][0]]
         )
         req = fakes.create_req_test(None, None)
-        m_list.return_value = sec_group
+        m_list.return_value = sec_group[0]
         result = self.controller.show(req, None)
         expected = self.controller._get_security_group_resources(sec_group)[0]
         self.assertIsInstance(result, occi_security_group.SecurityGroup)
@@ -113,7 +113,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
                   }
         categories = {occi_security_group.SecurityGroup.kind}
         req = fakes.create_req_test_occi(params, categories)
-        m_create.return_value = [sec_group]
+        m_create.return_value = sec_group
         ret = self.controller.create(req, params)
         expected = self.controller._get_security_group_resources([sec_group])
         self.assertIsInstance(ret.resources[0], occi_security_group.SecurityGroup)

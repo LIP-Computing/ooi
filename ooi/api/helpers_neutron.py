@@ -570,7 +570,7 @@ class OpenStackNeutron(helpers.BaseHelper):
             ooi_sec = os_helpers.build_security_group_from_neutron(
                 [secgroup]
             )
-            return ooi_sec
+            return ooi_sec[0]
         except Exception as e:
             raise exception.NotFound()
 
@@ -626,7 +626,7 @@ class OpenStackNeutron(helpers.BaseHelper):
             ooi_sec = os_helpers.build_security_group_from_neutron(
                 [secgroup]
             )
-            return ooi_sec
+            return ooi_sec[0]
         except Exception as ex:
             raise ex
 

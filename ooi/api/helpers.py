@@ -1020,7 +1020,7 @@ class OpenStackHelper(BaseHelper):
         response = os_req.get_response(self.app)
         nets = self.get_from_response(response, "security_group", [])
         ooi_sec = os_helpers.build_security_group_from_nova([nets])
-        return ooi_sec
+        return ooi_sec[0]
 
     def list_security_groups(self, req):
         """List security groups
@@ -1089,7 +1089,7 @@ class OpenStackHelper(BaseHelper):
             ooi_sec = os_helpers.build_security_group_from_nova(
                 [secgroup]
             )
-            return ooi_sec
+            return ooi_sec[0]
         except Exception as ex:
             raise ex
 

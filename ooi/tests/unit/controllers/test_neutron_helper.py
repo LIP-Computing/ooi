@@ -556,7 +556,7 @@ class TestNetOpenStackHelper(base.TestCase):
         ret = self.helper.create_security_group(None, expected["title"],
                                                 expected["summary"],
                                                 expected["rules"])
-        self.assertEqual(expected, ret[0])
+        self.assertEqual(expected, ret)
         self.assertEqual(3, m_create.call_count)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
@@ -584,7 +584,7 @@ class TestNetOpenStackHelper(base.TestCase):
     def test_show_security_group(self, m_list):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = fakes.security_groups[tenant_id][0]
-        expected = openstack_helper.build_security_group_from_neutron([sec_group])
+        expected = openstack_helper.build_security_group_from_neutron([sec_group])[0]
         list_sec = sec_group
         m_list.return_value = list_sec
         ret = self.helper.get_security_group_details(None, None)

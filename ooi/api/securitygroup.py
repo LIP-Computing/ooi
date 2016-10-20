@@ -140,7 +140,7 @@ class Controller(base.Controller):
         """
         resp = self.os_helper.get_security_group_details(req, id)
         occi_sc_resources = self._get_security_group_resources(
-            resp)
+            [resp])
         return occi_sc_resources[0]
 
     def create(self, req, body=None):
@@ -164,7 +164,7 @@ class Controller(base.Controller):
             raise exception.Invalid("Bad JSON format for occi.securitygroup.rules: %s"
                                     % attributes.get('occi.securitygroup.rules'))
         sec = self.os_helper.create_security_group(req, name, description, rules)
-        occi_sec_resources = self._get_security_group_resources(sec)
+        occi_sec_resources = self._get_security_group_resources([sec])
         return collection.Collection(
             resources=occi_sec_resources)
 
