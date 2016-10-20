@@ -79,7 +79,6 @@ class KeySession(object):
         kwargs["server_port"] = "9696"
         # urlparse.urlsplit(base_url)
         environ['wsgi.url_scheme'] = "https"
-
         return webob.Request.blank(path=path, environ=environ, base_url=base_url, headers=headers, **kwargs)
 
     def create_request_nova(self, app, path="/", environ={}, headers=None, base_url="/v2.0", **kwargs):
@@ -87,5 +86,12 @@ class KeySession(object):
         kwargs["http_version"] = "HTTP/1.1"
         kwargs["server_name"] = IP_SERVER
         kwargs["server_port"] = "8774"
+        return webob.Request.blank(path=path, environ=environ, base_url=base_url, headers=headers, **kwargs)
 
+    def create_request_nova_ssl(self, app, path="/", environ={}, headers=None, base_url="/v2.0", **kwargs):
+        environ ["HTTP_X-Auth-Token"]= app.auth_token #"4cf9e807516c450fa98f320f4a9f431a
+        kwargs["http_version"] = "HTTP/1.1"
+        kwargs["server_name"] = IP_SERVER
+        kwargs["server_port"] = "8774"
+        environ['wsgi.url_scheme'] = "https"
         return webob.Request.blank(path=path, environ=environ, base_url=base_url, headers=headers, **kwargs)

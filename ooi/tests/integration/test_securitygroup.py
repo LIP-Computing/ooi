@@ -22,7 +22,8 @@ from ooi.api import query
 from ooi.occi.infrastructure import securitygroup
 from ooi.openstack import helpers as os_helpers
 from ooi.tests.integration.keystone.session import KeySession
-from ooi.tests import fakes_network as fakes
+from ooi.tests import fakes_network
+from ooi.tests import fakes as fakes_nova
 from ooi import utils
 from ooi.tests.integration.keystone import session
 
@@ -67,6 +68,51 @@ class TestIntegrationSecGroups(TestIntegration):
     #
     # def test_delete(self):
     #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
+    #     resources = self.controller.delete(self.req, htts_sec)
+    #     self.assertEqual([], resources)
+
+
+class TestIntegrationSecGroupsNova(TestIntegration):
+
+    def setUp(self):
+        super(TestIntegrationSecGroupsNova, self).setUp()
+        self.req = Request(
+            KeySession().create_request_nova_ssl(self.session, path="/",
+                                        environ={},
+                                        headers={
+                                            "X_PROJECT_ID": self.project_id
+                                        }).environ)
+
+        self.controller = security_group_controller.Controller(
+            app=None, openstack_version="/v2.1"
+        )
+
+    def test_list(self):
+        list = self.controller.index(self.req)
+        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroup)
+
+    def test_show(self):
+        htts_sec = "5cbb5205-035b-4c51-8eb8-0800f614614c"
+        resources = self.controller.show(self.req, htts_sec)
+        self.assertIsInstance(resources, securitygroup.SecurityGroup)
+
+    # def test_create_securitygroup(self):
+    #     tenant_id = fakes_nova.tenants["foo"]["id"]
+    #     sec_group = os_helpers.build_security_group_from_nova(
+    #         fakes_nova.security_groups[tenant_id]
+    #     )[0]
+    #     params = {"occi.core.title": "testgroup2",
+    #               "occi.core.summary": "group two for testing",
+    #               "occi.securitygroup.rules": sec_group["rules"]
+    #               }
+    #     categories = {securitygroup.SecurityGroup.kind}
+    #     occi_headers = fakes_network.create_header_occi(params, categories)
+    #     self.req.headers.update(occi_headers)
+    #     ret = self.controller.create(self.req, params)
+    #     expected = self.controller._get_security_group_resources([sec_group])
+    #
+    # def test_delete(self):
+    #     htts_sec = '778ba860-df55-4b2d-9e93-9099cfaf01cf'
     #     resources = self.controller.delete(self.req, htts_sec)
     #     self.assertEqual([], resources)
 
