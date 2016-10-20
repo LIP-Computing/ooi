@@ -167,7 +167,7 @@ security_groups = {
                  "protocol": "tcp", "direction": "ingress"},
                 {"ethertype": "IPv4", "port_range_min": "8000",
                  "port_range_max": 9000, "remote_ip_prefix": "11.0.0.0/24",
-                 "protocol": "upd", "direction": "egress"}
+                 "protocol": "udp", "direction": "egress"}
             ]
         },
         {
@@ -179,7 +179,7 @@ security_groups = {
                  "protocol": "tcp", "direction": "ingress"},
                 {"ethertype": "IPv4", "port_range_min": "5000",
                  "port_range_max": 6000, "remote_ip_prefix": "11.0.0.0/24",
-                 "protocol": "upd", "direction": "egress"}
+                 "protocol": "udp", "direction": "egress"}
             ]
         }
 
