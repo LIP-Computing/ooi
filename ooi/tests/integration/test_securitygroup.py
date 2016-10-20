@@ -28,10 +28,10 @@ from ooi import utils
 from ooi.tests.integration.keystone import session
 
 
-class TestIntegrationSecGroups(TestIntegration):
+class TestIntegrationSecGroupsNeutron(TestIntegration):
 
     def setUp(self):
-        super(TestIntegrationSecGroups, self).setUp()
+        super(TestIntegrationSecGroupsNeutron, self).setUp()
         self.req = Request(
             KeySession().create_request_ssl(self.session, path="/",
                                         environ={},
@@ -53,19 +53,20 @@ class TestIntegrationSecGroups(TestIntegration):
         self.assertIsInstance(resources, securitygroup.SecurityGroup)
 
     # def test_create_securitygroup(self):
-    #     tenant_id = fakes.tenants["foo"]["id"]
+    #     tenant_id = fakes_network.tenants["foo"]["id"]
     #     sec_group = os_helpers.build_security_group_from_neutron(
-    #         fakes.security_groups[tenant_id]
+    #         fakes_network.security_groups[tenant_id]
     #     )[0]
-    #     params = {"occi.core.title": "testgroup",
+    #     params = {"occi.core.title": "testgroup2",
+    #               "occi.core.summary": "test group two",
     #               "occi.securitygroup.rules": sec_group["rules"]
     #               }
     #     categories = {securitygroup.SecurityGroup.kind}
-    #     occi_headers = fakes.create_header_occi(params, categories)
+    #     occi_headers = fakes_network.create_header_occi(params, categories)
     #     self.req.headers.update(occi_headers)
-    #     ret = self.controller.create(self.req, params)
+    #     ret = self.controller.create(self.req, None)
     #     expected = self.controller._get_security_group_resources([sec_group])
-    #
+    # #
     # def test_delete(self):
     #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
     #     resources = self.controller.delete(self.req, htts_sec)
