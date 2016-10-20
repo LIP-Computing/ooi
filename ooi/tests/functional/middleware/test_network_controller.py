@@ -48,11 +48,6 @@ class TestNetNeutronController(test_middleware.TestMiddleware):
                                autospec=True):
             self.app = wsgi.OCCIMiddleware(None)
 
-    def assertExpectedResult(self, expected, result):
-        expected = ["%s: %s" % e for e in expected]
-        # NOTE(aloga): the order of the result does not matter
-        results = str(result.text).splitlines()
-        self.assertItemsEqual(expected, results)
 
     def test_deprecated_configuration(self):
         with warnings.catch_warnings(record=True) as w:
@@ -228,15 +223,8 @@ class TestNetNovaController(test_middleware.TestMiddleware):
     def setUp(self):
         super(TestNetNovaController, self).setUp()
         self.schema = 'http://schemas.ogf.org/occi/infrastructure#network'
-        self.accept = self.content_type = None
         self.application_url = fakes.application_url
         self.app = wsgi.OCCIMiddleware(None)
-
-    def assertExpectedResult(self, expected, result):
-        expected = ["%s: %s" % e for e in expected]
-        # NOTE(aloga): the order of the result does not matter
-        results = str(result.text).splitlines()
-        self.assertItemsEqual(expected, results)
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_list_networks_empty(self, m):

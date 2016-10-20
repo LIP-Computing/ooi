@@ -410,8 +410,7 @@ def build_occi_nova(network):
     return result
 
 
-def build_occi_securitygroup(s):
-    secgroup = os_helpers.build_security_group_from_neutron([s])[0]
+def build_occi_securitygroup(secgroup):
     name = secgroup["title"]
     secgroup_id = secgroup["id"]
     rules = secgroup["rules"]
