@@ -112,9 +112,11 @@ class Controller(base.Controller):
                 s_rules = simplejson.dumps(s['rules']).replace('"', "'")
                 s_id = s["id"]
                 s_name = s["title"]
+                s_summary = s["summary"]
                 s = securitygroup.SecurityGroup(title=s_name,
-                                                 id=s_id,
-                                                 rules=s_rules)
+                                                id=s_id,
+                                                rules=s_rules,
+                                                summary=s_summary)
                 occi_securitygroup_resources.append(s)
         return occi_securitygroup_resources
 

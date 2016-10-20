@@ -548,10 +548,13 @@ class TestNetOpenStackHelper(base.TestCase):
         sec_group = fakes.security_groups[tenant_id][0]
         expected = openstack_helper.build_security_group_from_neutron([sec_group])[0]
         m_tenant.return_value = uuid.uuid4().hex
-        group_info = {"name": sec_group["name"], "id": sec_group["id"]}
+        group_info = {"name": sec_group["name"], "id": sec_group["id"],
+                      "description": sec_group["description"]}
         rules_out_1 = sec_group["security_group_rules"][0]
         rules_out_2 = sec_group["security_group_rules"][1]
-        params = {"title": sec_group["name"], "rules": expected["rules"]}
+        params = {"title": sec_group["name"],
+                  ""
+                  "rules": expected["rules"]}
         m_create.side_effect = [group_info, rules_out_1, rules_out_2]
         ret = self.helper.create_security_group(None, params)
         self.assertEqual(expected, ret[0])

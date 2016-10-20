@@ -79,6 +79,7 @@ def build_security_group_from_neutron(sec_groups):
         rules_list = []
         ooi_sec["id"] = sec["id"]
         ooi_sec["title"] = sec.get("name", None)
+        ooi_sec["summary"] = sec.get("description", "")
         for rule in sec["security_group_rules"]:
             ipversion = rule.get("ethertype", "IPv4")
             rule_type = security_group_rule_type(

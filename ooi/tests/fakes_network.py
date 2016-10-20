@@ -161,6 +161,7 @@ security_groups = {
         {
             "name": "group1",
             "id": uuid.uuid4().hex,
+            "description": "group one",
             "security_group_rules": [
                 {"ethertype": "IPv4", "port_range_min": 443,
                  "port_range_max": 443, "remote_ip_prefix": "10.0.0.0/32",
@@ -173,6 +174,7 @@ security_groups = {
         {
             "name": "group2",
             "id": uuid.uuid4().hex,
+            "description": "group two",
             "security_group_rules": [
                 {"ethertype": "IPv4", "port_range_min": 80,
                  "port_range_max": 80, "remote_ip_prefix": "10.0.0.0/32",
@@ -413,6 +415,7 @@ def build_occi_securitygroup(s):
     name = secgroup["title"]
     secgroup_id = secgroup["id"]
     rules = secgroup["rules"]
+    summary = secgroup["summary"]
     app_url = application_url
     cats = []
     cats.append('securitygroup; '
@@ -427,6 +430,7 @@ def build_occi_securitygroup(s):
     attrs = [
         'occi.core.id="%s"' % secgroup_id,
         'occi.core.title="%s"' % name,
+        'occi.core.summary="%s"' % summary,
         'occi.securitygroup.rules="%s"' % json.dumps(rules).replace('"', "'"),
         ]
     result = []
