@@ -27,7 +27,6 @@ class SecurityGroupLink(link.Link):
                      attributes, 'securitygrouplink/',
                      related=[link.Link.kind])
 
-    def __init__(self, mixins, source, target, id=None):
-
-        super(SecurityGroupLink, self).__init__(None, mixins, source,
-                                               target, id)
+    def __init__(self, source, target, id=None):
+        super(SecurityGroupLink, self).__init__(None, [], source,
+                                                target, id)

@@ -1033,8 +1033,8 @@ class OpenStackHelper(BaseHelper):
         os_req = self._get_req(req, path=path,
                                method="GET")
         response = os_req.get_response(self.app)
-        nets = self.get_from_response(response, "security_groups", [])
-        ooi_sec = os_helpers.build_security_group_from_nova(nets)
+        sec = self.get_from_response(response, "security_groups", [])
+        ooi_sec = os_helpers.build_security_group_from_nova(sec)
         return ooi_sec
 
     def create_security_group(self, req, name, description, rules):
@@ -1105,5 +1105,88 @@ class OpenStackHelper(BaseHelper):
         path = "/%s/%s/%s" % (tenant_id, path, sec_id)
         os_req = self._get_req(req, path=path,
                                method="DELETE")
+        os_req.get_response(self.app)
+        return []
+
+    def list_server_security_links(self, req):
+        """ List security groups associated to servers
+
+        :param req: incoming request
+        :return: security groups associated to servers
+        """
+        link_list = []
+        compute_list = self.index(req)
+        for c in compute_list:
+            compute_id = c["id"]
+            compute = self.get_server(req, compute_id)
+            server_secgroups = compute.get("security_groups", {})
+            for sec in server_secgroups:
+                link = {
+                    "compute_id": compute_id,
+                    "securitygroup": {
+                        "title": sec["name"]
+                    }
+                }
+                link_list.append(link)
+        return link_list
+
+    def get_server_security_link(self, req, server_id,
+                                 securitygroup_name):
+        """ Show security group link from a server
+
+        :param req: incoming request
+        :param server_id: server id
+        :param securtygroup_name: security group name
+        :return: information about the security group
+        """
+        compute = self.get_server(req, server_id)
+        server_secgroups = compute.get("security_groups", {})
+        for server_sec in server_secgroups:
+            if server_sec["name"] == securitygroup_name:
+                link = {"compute_id": server_id,
+                        "securitygroup_name": securitygroup_name
+                        }
+                return link
+        return None
+
+    def delete_server_security_link(self, req, server_id,
+                                    securitygroup_name):
+        """ Delete security group link from a server
+
+        :param req: incoming request
+        :param server_id: server id
+        :param securitygroup_name: segurity group name
+        :return: empty
+        """
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/servers/%s/action" % (tenant_id, server_id)
+        param = {"name": securitygroup_name}
+        body = utils.make_body('removeSecurityGroup', param)
+        os_req = self._get_req(req,
+                               path=path,
+                               content_type="application/json",
+                               body=json.dumps(body),
+                               method="POST")
+        os_req.get_response(self.app)
+        return []
+
+    def create_server_security_link(self, req, server_id,
+                                    securitygroup_name):
+        """ Create security group link in a server
+
+        :param req: incoming request
+        :param server_id: server id
+        :param securitygroup_name: segurity group name
+        :return: empty
+        """
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/servers/%s/action" % (tenant_id, server_id)
+        param = {"name": securitygroup_name}
+        body = utils.make_body('addSecurityGroup', param)
+        os_req = self._get_req(req,
+                               path=path,
+                               content_type="application/json",
+                               body=json.dumps(body),
+                               method="POST")
         os_req.get_response(self.app)
         return []
