@@ -45,12 +45,12 @@ class TestIntegrationSecGroupsNeutron(TestIntegration):
 
     def test_list(self):
         list = self.controller.index(self.req)
-        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroup)
+        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroupResource)
 
     def test_show(self):
         htts_sec = "b86534fa-2435-4d6c-b0d7-ad77f24411e0"
         resources = self.controller.show(self.req, htts_sec)
-        self.assertIsInstance(resources, securitygroup.SecurityGroup)
+        self.assertIsInstance(resources, securitygroup.SecurityGroupResource)
 
     # def test_create_securitygroup(self):
     #     tenant_id = fakes_network.tenants["foo"]["id"]
@@ -61,7 +61,7 @@ class TestIntegrationSecGroupsNeutron(TestIntegration):
     #               "occi.core.summary": "test group two",
     #               "occi.securitygroup.rules": sec_group["rules"]
     #               }
-    #     categories = {securitygroup.SecurityGroup.kind}
+    #     categories = {securitygroup.SecurityGroupResource.kind}
     #     occi_headers = fakes_network.create_header_occi(params, categories)
     #     self.req.headers.update(occi_headers)
     #     ret = self.controller.create(self.req, None)
@@ -90,12 +90,12 @@ class TestIntegrationSecGroupsNova(TestIntegration):
 
     def test_list(self):
         list = self.controller.index(self.req)
-        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroup)
+        self.assertIsInstance(list.resources[0], securitygroup.SecurityGroupResource)
 
     def test_show(self):
         htts_sec = "5cbb5205-035b-4c51-8eb8-0800f614614c"
         resources = self.controller.show(self.req, htts_sec)
-        self.assertIsInstance(resources, securitygroup.SecurityGroup)
+        self.assertIsInstance(resources, securitygroup.SecurityGroupResource)
 
     # def test_create_securitygroup(self):
     #     tenant_id = fakes_nova.tenants["foo"]["id"]
@@ -106,7 +106,7 @@ class TestIntegrationSecGroupsNova(TestIntegration):
     #               "occi.core.summary": "group two for testing",
     #               "occi.securitygroup.rules": sec_group["rules"]
     #               }
-    #     categories = {securitygroup.SecurityGroup.kind}
+    #     categories = {securitygroup.SecurityGroupResource.kind}
     #     occi_headers = fakes_network.create_header_occi(params, categories)
     #     self.req.headers.update(occi_headers)
     #     ret = self.controller.create(self.req, params)

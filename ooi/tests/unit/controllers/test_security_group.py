@@ -46,7 +46,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         self.assertEqual(result.resources.__len__(),
                          expected.__len__())
         for r in result.resources:
-            self.assertIsInstance(r, occi_security_group.SecurityGroup)
+            self.assertIsInstance(r, occi_security_group.SecurityGroupResource)
         m_list.assert_called_with(req)
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
@@ -72,7 +72,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         m_list.return_value = sec_group[0]
         result = self.controller.show(req, None)
         expected = self.controller._get_security_group_resources(sec_group)[0]
-        self.assertIsInstance(result, occi_security_group.SecurityGroup)
+        self.assertIsInstance(result, occi_security_group.SecurityGroupResource)
         self.assertEqual(result, expected)
         m_list.assert_called_with(req, None)
 
@@ -117,14 +117,14 @@ class TestSecurityGroupControllerNeutron(base.TestController):
                   "occi.securitygroup.rules": sec_group["rules"],
                   "occi.core.summary": sec_group["summary"]
                   }
-        categories = {occi_security_group.SecurityGroup.kind}
+        categories = {occi_security_group.SecurityGroupResource.kind}
         req = fakes.create_req_test_occi(params, categories)
         m_create.return_value = sec_group
         ret = self.controller.create(req, params)
         expected = self.controller._get_security_group_resources(
             [sec_group])
         self.assertIsInstance(ret.resources[0],
-                              occi_security_group.SecurityGroup)
+                              occi_security_group.SecurityGroupResource)
         self.assertEqual(expected[0], ret.resources[0])
         m_create.assert_called_with(req, sec_group["title"],
                                     sec_group["summary"],
@@ -132,7 +132,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
 
     def test_create_error(self):
         test_networks = fakes.networks[fakes.tenants["foo"]["id"]]
-        schema1 = occi_security_group.SecurityGroup.kind.scheme
+        schema1 = occi_security_group.SecurityGroupResource.kind.scheme
         net = test_networks[0]
         schemes = {schema1: net}
         parameters = {"occi.core.title": "name",
@@ -145,6 +145,6 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         params = {"occi.core.title": "group",
                   "occi.securitygroup.rules": "{'wrong': 'value'}]"
                   }
-        categories = {occi_security_group.SecurityGroup.kind}
+        categories = {occi_security_group.SecurityGroupResource.kind}
         req = fakes.create_req_test_occi(params, categories)
         self.assertRaises(exception.Invalid, self.controller.create, req)

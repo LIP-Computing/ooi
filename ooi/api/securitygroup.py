@@ -112,7 +112,7 @@ class Controller(base.Controller):
                 s_id = s["id"]
                 s_name = s["title"]
                 s_summary = s["summary"]
-                s = securitygroup.SecurityGroup(title=s_name,
+                s = securitygroup.SecurityGroupResource(title=s_name,
                                                 id=s_id,
                                                 rules=s_rules,
                                                 summary=s_summary)
@@ -149,7 +149,7 @@ class Controller(base.Controller):
         :param body: body request (not used)
         """
         scheme = {
-            "category": securitygroup.SecurityGroup.kind,
+            "category": securitygroup.SecurityGroupResource.kind,
         }
         required = ["occi.core.title",
                     "occi.securitygroup.rules"
@@ -188,7 +188,7 @@ class Controller(base.Controller):
         :param body: body
         """
         action = req.GET.get("action", None)
-        occi_actions = [a.term for a in securitygroup.SecurityGroup.actions]
+        occi_actions = [a.term for a in securitygroup.SecurityGroupResource.actions]
 
         if action is None or action not in occi_actions:
             raise exception.InvalidAction(action=action)

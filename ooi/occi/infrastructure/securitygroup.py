@@ -20,7 +20,7 @@ from ooi.occi.core import resource
 from ooi.occi import helpers
 
 
-class SecurityGroup(resource.Resource):
+class SecurityGroupResource(resource.Resource):
     attributes = attr.AttributeCollection(["occi.securitygroup.rules"])
     actions = []  # In case it is None, header.ResourceRenderer fails
     kind = kind.Kind(helpers.build_scheme('infrastructure'), 'securitygroup',
@@ -29,7 +29,7 @@ class SecurityGroup(resource.Resource):
                      actions=actions)
 
     def __init__(self, title, id, rules, summary=None, mixins=[]):
-        super(SecurityGroup, self).__init__(title, mixins, summary=summary,
+        super(SecurityGroupResource, self).__init__(title, mixins, summary=summary,
                                             id=id)
         self.attributes["occi.securitygroup.rules"] = attr.MutableAttribute(
             "occi.securitygroup.rules", rules)
