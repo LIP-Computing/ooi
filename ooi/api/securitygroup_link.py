@@ -53,6 +53,7 @@ class Controller(base.Controller):
 
     def __init__(self, *args, **kwargs):
         super(Controller, self).__init__(*args, **kwargs)
+        # TODO(jorgesece): add neutron controller to list securitygroups
         self.os_helper = ooi.api.helpers.OpenStackHelper(
             self.app,
             self.openstack_version
