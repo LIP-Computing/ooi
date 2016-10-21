@@ -190,6 +190,10 @@ servers = {
             "flavor": {"id": flavors[1]["id"]},
             "image": {"id": images["foo"]["id"]},
             "status": "ACTIVE",
+            "security_groups":[
+                {"name": "group1"},
+                {"name": "group2"}
+            ]
         },
         {
             "id": uuid.uuid4().hex,
@@ -197,6 +201,9 @@ servers = {
             "flavor": {"id": flavors[2]["id"]},
             "image": {"id": images["bar"]["id"]},
             "status": "SHUTOFF",
+            "security_groups":[
+                {"name": "group1"}
+            ]
         },
         {
             "id": uuid.uuid4().hex,
@@ -204,6 +211,9 @@ servers = {
             "flavor": {"id": flavors[1]["id"]},
             "image": {"id": images["bar"]["id"]},
             "status": "ERROR",
+            "security_groups":[
+                {"name": "group2"}
+            ]
         },
     ],
     tenants["bar"]["id"]: [],
@@ -232,7 +242,10 @@ servers = {
                      "OS-EXT-IPS:type": "floating",
                      "OS-EXT-IPS-MAC:mac_addr": "1234"},
                 ]
-            }
+            },
+            "security_groups":[
+                {"name": "group1"}
+            ]
         }
     ],
 }
