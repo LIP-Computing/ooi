@@ -18,8 +18,10 @@ from ooi.tests.integration import  TestIntegration
 from ooi import exception
 from ooi.wsgi import Request
 from ooi.api import securitygroup as security_group_controller
+from ooi.api import securitygroup_link as security_link_controller
 from ooi.api import query
 from ooi.occi.infrastructure import securitygroup
+from ooi.occi.infrastructure import securitygroup_link
 from ooi.openstack import helpers as os_helpers
 from ooi.tests.integration.keystone.session import KeySession
 from ooi.tests import fakes_network
@@ -28,16 +30,64 @@ from ooi import utils
 from ooi.tests.integration.keystone import session
 
 
+class TestIntegrationSecGroupsLink(TestIntegration):
+
+    def setUp(self):
+        super(TestIntegrationSecGroupsLink, self).setUp()
+        self.application_url = "https://localhost:80/v2.0"
+        self.req = Request(
+            KeySession().create_request_nova_ssl(self.session, path="/",
+                                                 environ={},
+                                                 headers={
+                                                     "X_PROJECT_ID": self.project_id
+                                                 }, base_url="/v2.0"
+                                                 ).environ)
+        self.controller = security_link_controller.Controller(
+            app=None, openstack_version="/v2.1"
+        )
+
+    def test_list(self):
+        list = self.controller.index(self.req)
+        self.assertIsInstance(list.resources[0],
+                              securitygroup_link.SecurityGroupLink)
+
+    def test_show(self):
+        htts_sec = "2732a3ce-b562-4942-8c30-004b9f860fb3_https"
+        resources = self.controller.show(self.req, htts_sec)
+        self.assertIsInstance(resources,
+                              securitygroup_link.SecurityGroupLink)
+
+    # def test_create(self):
+    #     compute_id = utils.join_url(self.application_url + "/",
+    #                                 "compute/2732a3ce-b562-4942-8c30-004b9f860fb3")
+    #     sec_name = utils.join_url(self.application_url + "/",
+    #                               "securitygroup/https")
+    #     params = {"occi.core.target": sec_name,
+    #               "occi.core.source": compute_id
+    #               }
+    #     categories = {securitygroup_link.SecurityGroupLink.kind}
+    #     occi_headers = fakes_network.create_header_occi(params, categories)
+    #     self.req.headers.update(occi_headers)
+    #     resources = self.controller.create(self.req)
+    #     self.assertIsInstance(resources.target,
+    #                           securitygroup.SecurityGroupResource)
+    #
+    # def test_delete(self):
+    #     htts_sec = "2732a3ce-b562-4942-8c30-004b9f860fb3_https"
+    #     resources = self.controller.delete(self.req, htts_sec)
+    #     self.assertEqual([], resources)
+
+
 class TestIntegrationSecGroupsNeutron(TestIntegration):
 
     def setUp(self):
         super(TestIntegrationSecGroupsNeutron, self).setUp()
         self.req = Request(
             KeySession().create_request_ssl(self.session, path="/",
-                                        environ={},
-                                        headers={
-                                            "X_PROJECT_ID": self.project_id
-                                        }).environ)
+                                            environ={},
+                                            headers={
+                                                "X_PROJECT_ID": self.project_id
+                                            }).environ)
 
         self.controller = security_group_controller.Controller(
             app=None, neutron_ooi_endpoint="https://192.92.149.119:9696/v2.0"
@@ -52,25 +102,25 @@ class TestIntegrationSecGroupsNeutron(TestIntegration):
         resources = self.controller.show(self.req, htts_sec)
         self.assertIsInstance(resources, securitygroup.SecurityGroupResource)
 
-    # def test_create_securitygroup(self):
-    #     tenant_id = fakes_network.tenants["foo"]["id"]
-    #     sec_group = os_helpers.build_security_group_from_neutron(
-    #         fakes_network.security_groups[tenant_id]
-    #     )[0]
-    #     params = {"occi.core.title": "testgroup2",
-    #               "occi.core.summary": "test group two",
-    #               "occi.securitygroup.rules": sec_group["rules"]
-    #               }
-    #     categories = {securitygroup.SecurityGroupResource.kind}
-    #     occi_headers = fakes_network.create_header_occi(params, categories)
-    #     self.req.headers.update(occi_headers)
-    #     ret = self.controller.create(self.req, None)
-    #     expected = self.controller._get_security_group_resources([sec_group])
-    # #
-    # def test_delete(self):
-    #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
-    #     resources = self.controller.delete(self.req, htts_sec)
-    #     self.assertEqual([], resources)
+        # def test_create_securitygroup(self):
+        #     tenant_id = fakes_network.tenants["foo"]["id"]
+        #     sec_group = os_helpers.build_security_group_from_neutron(
+        #         fakes_network.security_groups[tenant_id]
+        #     )[0]
+        #     params = {"occi.core.title": "testgroup2",
+        #               "occi.core.summary": "test group two",
+        #               "occi.securitygroup.rules": sec_group["rules"]
+        #               }
+        #     categories = {securitygroup.SecurityGroupResource.kind}
+        #     occi_headers = fakes_network.create_header_occi(params, categories)
+        #     self.req.headers.update(occi_headers)
+        #     ret = self.controller.create(self.req, None)
+        #     expected = self.controller._get_security_group_resources([sec_group])
+        # #
+        # def test_delete(self):
+        #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
+        #     resources = self.controller.delete(self.req, htts_sec)
+        #     self.assertEqual([], resources)
 
 
 class TestIntegrationSecGroupsNova(TestIntegration):
@@ -79,10 +129,10 @@ class TestIntegrationSecGroupsNova(TestIntegration):
         super(TestIntegrationSecGroupsNova, self).setUp()
         self.req = Request(
             KeySession().create_request_nova_ssl(self.session, path="/",
-                                        environ={},
-                                        headers={
-                                            "X_PROJECT_ID": self.project_id
-                                        }).environ)
+                                                 environ={},
+                                                 headers={
+                                                     "X_PROJECT_ID": self.project_id
+                                                 }).environ)
 
         self.controller = security_group_controller.Controller(
             app=None, openstack_version="/v2.1"
@@ -97,51 +147,51 @@ class TestIntegrationSecGroupsNova(TestIntegration):
         resources = self.controller.show(self.req, htts_sec)
         self.assertIsInstance(resources, securitygroup.SecurityGroupResource)
 
-    # def test_create_securitygroup(self):
-    #     tenant_id = fakes_nova.tenants["foo"]["id"]
-    #     sec_group = os_helpers.build_security_group_from_nova(
-    #         fakes_nova.security_groups[tenant_id]
-    #     )[0]
-    #     params = {"occi.core.title": "testgroup2",
-    #               "occi.core.summary": "group two for testing",
-    #               "occi.securitygroup.rules": sec_group["rules"]
-    #               }
-    #     categories = {securitygroup.SecurityGroupResource.kind}
-    #     occi_headers = fakes_network.create_header_occi(params, categories)
-    #     self.req.headers.update(occi_headers)
-    #     ret = self.controller.create(self.req, params)
-    #     expected = self.controller._get_security_group_resources([sec_group])
-    #
-    # def test_delete(self):
-    #     htts_sec = '778ba860-df55-4b2d-9e93-9099cfaf01cf'
-    #     resources = self.controller.delete(self.req, htts_sec)
-    #     self.assertEqual([], resources)
+        # def test_create_securitygroup(self):
+        #     tenant_id = fakes_nova.tenants["foo"]["id"]
+        #     sec_group = os_helpers.build_security_group_from_nova(
+        #         fakes_nova.security_groups[tenant_id]
+        #     )[0]
+        #     params = {"occi.core.title": "testgroup2",
+        #               "occi.core.summary": "group two for testing",
+        #               "occi.securitygroup.rules": sec_group["rules"]
+        #               }
+        #     categories = {securitygroup.SecurityGroupResource.kind}
+        #     occi_headers = fakes_network.create_header_occi(params, categories)
+        #     self.req.headers.update(occi_headers)
+        #     ret = self.controller.create(self.req, params)
+        #     expected = self.controller._get_security_group_resources([sec_group])
+        #
+        # def test_delete(self):
+        #     htts_sec = '778ba860-df55-4b2d-9e93-9099cfaf01cf'
+        #     resources = self.controller.delete(self.req, htts_sec)
+        #     self.assertEqual([], resources)
 
-# class TestMiddleware(TestIntegration):
-#     def setUp(self):
-#         super(TestMiddleware, self).setUp()
-#         endpoint = "http://%s/9696/v2.0" % session.IP_SERVER
-#         self.app = wsgi.OCCIMiddleware(None, neutron_ooi_endpoint=endpoint)
-#
-#     def test_list_links(self):
-#         headers = {
-#             #'Category': 'network; scheme="http://schema#";class="kind";',
-#             "X_PROJECT_ID": self.project_id,
-#         }
-#         req = KeySession().create_request(self.session, headers=headers, path="/networklink")
-#         result = req.get_response(self.app)
-#         self.assertEqual(200, result.status_code)
-#         self.assertIsNot("", result.text)
-    #
-    # def test_show(self):
-    #     reservation_id = '705f8740-5bcc-4a3b-9375-1ef4718d5e88'
-    #     result = self.controller.show(self.req, reservation_id)
-    #     self.assertIsInstance(result, ip_reservation.IPReservation)
-    #     self.assertEqual("external-net", result.title)
-    #
-    # def test_query(self):
-    #     query_controller = query.Controller(
-    #         app=None,openstack_version="/v2.1"
-    #     )
-    #     list = query_controller.index(self.req)
-    #     self.assertIsInstance(list[list.__len__()-1],  ip_reservation.IPReservation)
+        # class TestMiddleware(TestIntegration):
+        #     def setUp(self):
+        #         super(TestMiddleware, self).setUp()
+        #         endpoint = "http://%s/9696/v2.0" % session.IP_SERVER
+        #         self.app = wsgi.OCCIMiddleware(None, neutron_ooi_endpoint=endpoint)
+        #
+        #     def test_list_links(self):
+        #         headers = {
+        #             #'Category': 'network; scheme="http://schema#";class="kind";',
+        #             "X_PROJECT_ID": self.project_id,
+        #         }
+        #         req = KeySession().create_request(self.session, headers=headers, path="/networklink")
+        #         result = req.get_response(self.app)
+        #         self.assertEqual(200, result.status_code)
+        #         self.assertIsNot("", result.text)
+        #
+        # def test_show(self):
+        #     reservation_id = '705f8740-5bcc-4a3b-9375-1ef4718d5e88'
+        #     result = self.controller.show(self.req, reservation_id)
+        #     self.assertIsInstance(result, ip_reservation.IPReservation)
+        #     self.assertEqual("external-net", result.title)
+        #
+        # def test_query(self):
+        #     query_controller = query.Controller(
+        #         app=None,openstack_version="/v2.1"
+        #     )
+        #     list = query_controller.index(self.req)
+        #     self.assertIsInstance(list[list.__len__()-1],  ip_reservation.IPReservation)
