@@ -15,25 +15,25 @@
 # under the License.
 
 import mock
-
 from oslo_config import cfg
 import webob
 
 from ooi.api import helpers
 from ooi.openstack import helpers as os_helpers
-from ooi.tests import fakes_network
 from ooi.tests import fakes as fakes_nova
+from ooi.tests import fakes_network
 from ooi.tests.functional.middleware import test_middleware
 from ooi import utils
 from ooi import wsgi
 
 
 class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
-    """Funcional tests OCCI security group controller by using Neutron"""
+    """Funcional tests OCCI security group controller by using Neutron."""
 
     def setUp(self):
         super(TestNetSecGroupControllerNeutron, self).setUp()
-        self.schema = 'http://schemas.ogf.org/occi/infrastructure#securitygroup'
+        self.schema = ('http://schemas.ogf.org/occi/'
+                       'infrastructure#securitygroup')
         self.application_url = fakes_network.application_url
         neutron_ooi_endpoint = "foo"
 
@@ -56,7 +56,9 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
     def test_list_sec_empty(self, m):
         tenant = fakes_network.tenants["bar"]
         out = fakes_network.create_fake_json_resp(
-            {"security_group": fakes_network.security_groups[tenant['id']]}, 200)
+            {
+                "security_group": fakes_network.security_groups[tenant['id']]
+            }, 200)
         m.return_value.get_response.return_value = out
 
         req = self._build_req(path="/securitygroup",
@@ -72,7 +74,9 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
     def test_list_securitygroup(self, m):
         tenant = fakes_network.tenants["foo"]
         out = fakes_network.create_fake_json_resp(
-            {"security_groups": fakes_network.security_groups[tenant['id']]}, 200)
+            {
+                "security_groups": fakes_network.security_groups[tenant['id']]
+            }, 200)
         m.return_value.get_response.return_value = out
         req = self._build_req(path="/securitygroup",
                               tenant_id='X', method="GET")
@@ -172,22 +176,25 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
         self.assertExpectedResult(expected, resp)
 
 
-class NetworkNovaControllerTextPlain(test_middleware.TestMiddlewareTextPlain,
-                                     TestNetSecGroupControllerNeutron):
+class NetworkNeutronControllerTextPlain(
+    test_middleware.TestMiddlewareTextPlain,
+    TestNetSecGroupControllerNeutron):
     """Test OCCI network controller with Accept: text/plain."""
 
 
-class NetworkNovaControllerTextOcci(test_middleware.TestMiddlewareTextOcci,
-                                    TestNetSecGroupControllerNeutron):
+class NetworkNeutronControllerTextOcci(
+    test_middleware.TestMiddlewareTextOcci,
+    TestNetSecGroupControllerNeutron):
     """Test OCCI network controller with Accept: text/occi."""
 
 
 class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
-    """Funcional test OCCI security group controller by using NOVA"""
+    """Funcional test OCCI security group controller by using NOVA."""
 
     def setUp(self):
         super(TestNetSecGroupControllerNova, self).setUp()
-        self.schema = 'http://schemas.ogf.org/occi/infrastructure#securitygroup'
+        self.schema = ('http://schemas.ogf.org/occi/'
+                       'infrastructure#securitygroup')
         self.application_url = fakes_nova.application_url
         self.app = wsgi.OCCIMiddleware(None)
 
@@ -195,7 +202,9 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
     def test_list_sec_empty(self, m):
         tenant = fakes_nova.tenants["bar"]
         out = fakes_nova.create_fake_json_resp(
-            {"security_group": fakes_nova.security_groups[tenant['id']]}, 200)
+            {
+                "security_group": fakes_nova.security_groups[tenant['id']]
+            }, 200)
         m.return_value.get_response.return_value = out
 
         req = self._build_req(path="/securitygroup",

@@ -22,8 +22,8 @@ import mock
 from ooi.api import helpers
 from ooi.openstack import helpers as os_helpers
 from ooi.tests import base
-from ooi.tests import fakes_network
 from ooi.tests import fakes as fakes_nova
+from ooi.tests import fakes_network
 from ooi import utils
 
 
@@ -37,7 +37,9 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]},
+            200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
         resp_float = fakes_network.create_fake_json_resp(
@@ -53,7 +55,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_networks_with_no_public(self, m_t, m_rq):
         id = uuid.uuid4().hex
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
         resp_float = fakes_network.create_fake_json_resp(
@@ -71,7 +74,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         id = uuid.uuid4().hex
         tenant_id = uuid.uuid4().hex
         m_t.return_value = tenant_id
-        resp = fakes_network.create_fake_json_resp({"networks": [{"id": id}]}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"networks": [{"id": id}]}, 200)
         resp_float = fakes_network.create_fake_json_resp(
             {"floating_ip_pools": [{"id": id}]}, 200
         )
@@ -123,7 +127,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         m_rq.assert_called_with(
             None, method="GET",
             path="/%s/os-networks/%s" % (tenant_id, id),
-            )
+        )
 
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
@@ -185,7 +189,8 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         tenant_id = fakes_nova.tenants["foo"]["id"]
         m_t.return_value = tenant_id
         sc_groups = fakes_nova.security_groups[tenant_id]
-        resp = fakes_network.create_fake_json_resp({"security_groups": sc_groups}, 200)
+        resp = fakes_network.create_fake_json_resp(
+            {"security_groups": sc_groups}, 200)
         req_mock = mock.MagicMock()
         req_mock.get_response.return_value = resp
         m_rq.side_effect = [req_mock]
@@ -238,16 +243,20 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         )[0]
         cont = 0
         for r in ret["rules"]:
-            self.assertEqual(occi_os_group['rules'][cont]['protocol'], r["protocol"])
-            self.assertEqual(occi_os_group['rules'][cont]['range'], r["range"])
-            self.assertEqual(occi_os_group['rules'][cont]['port'], r["port"])
-            self.assertEqual(occi_os_group['rules'][cont]['type'], r["type"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['protocol'], r["protocol"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['range'], r["range"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['port'], r["port"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['type'], r["type"])
             cont += 1
 
         m_rq.assert_called_with(
             None, method="GET",
             path="/%s/os-security-groups/%s" % (tenant_id, id),
-            )
+        )
 
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
@@ -274,16 +283,22 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         req_mock_rule2 = mock.MagicMock()
         req_mock_rule2.get_response.return_value = resp_rule2
         m_rq.side_effect = [req_mock, req_mock_rule1, req_mock_rule2]
-        ret = self.helper.create_security_group(None,
-                                         name=occi_os_group['title'],
-                                         description=occi_os_group['summary'],
-                                         rules=occi_os_group['rules']
-                                         )
+        ret = self.helper.create_security_group(
+            None,
+            name=occi_os_group['title'],
+            description=occi_os_group['summary'],
+            rules=occi_os_group['rules']
+        )
         cont = 0
         for r in ret["rules"]:
-            self.assertEqual(occi_os_group['rules'][cont]['protocol'], r["protocol"])
-            self.assertEqual(occi_os_group['rules'][cont]['range'], r["range"])
-            self.assertEqual(occi_os_group['rules'][cont]['port'], r["port"])
-            self.assertEqual(occi_os_group['rules'][cont]['type'], r["type"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['protocol'], r["protocol"]
+            )
+            self.assertEqual(
+                occi_os_group['rules'][cont]['range'], r["range"]
+            )
+            self.assertEqual(
+                occi_os_group['rules'][cont]['port'], r["port"])
+            self.assertEqual(
+                occi_os_group['rules'][cont]['type'], r["type"])
             cont += 1
-

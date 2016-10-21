@@ -17,10 +17,10 @@
 import mock
 
 from ooi.api import helpers_neutron
-from ooi.openstack import helpers as openstack_helper
 from ooi.api import securitygroup as security_group_api
 from ooi import exception
 from ooi.occi.infrastructure import securitygroup as occi_security_group
+from ooi.openstack import helpers as openstack_helper
 from ooi.tests import base
 from ooi.tests import fakes_network as fakes
 
@@ -29,9 +29,11 @@ class TestSecurityGroupControllerNeutron(base.TestController):
 
     def setUp(self):
         super(TestSecurityGroupControllerNeutron, self).setUp()
-        self.controller = security_group_api.Controller(neutron_ooi_endpoint="ff")
+        self.controller = security_group_api.Controller(
+            neutron_ooi_endpoint="ff")
 
-    @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_security_groups")
+    @mock.patch.object(helpers_neutron.OpenStackNeutron,
+                       "list_security_groups")
     def test_list_security_group(self, m_list):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
@@ -47,7 +49,8 @@ class TestSecurityGroupControllerNeutron(base.TestController):
             self.assertIsInstance(r, occi_security_group.SecurityGroup)
         m_list.assert_called_with(req)
 
-    @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_security_groups")
+    @mock.patch.object(helpers_neutron.OpenStackNeutron,
+                       "list_security_groups")
     def test_list_security_group_empty(self, m_list):
         tenant_id = fakes.tenants["bar"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
@@ -56,9 +59,10 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         req = fakes.create_req_test(None, None)
         m_list.return_value = sec_group
         result = self.controller.index(req)
-        self.assertEqual(result.resources.__len__(),0)
+        self.assertEqual(result.resources.__len__(), 0)
 
-    @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_security_group_details")
+    @mock.patch.object(helpers_neutron.OpenStackNeutron,
+                       "get_security_group_details")
     def test_show_security_group(self, m_list):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
@@ -90,9 +94,10 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         m_list.return_value = None
         ret = self.controller.delete(None, None)
         self.assertIsNone(ret)
-        m_list.assert_called_with(None, 'security-groups',None)
+        m_list.assert_called_with(None, 'security-groups', None)
 
-    @mock.patch.object(helpers_neutron.OpenStackNeutron, "delete_security_group")
+    @mock.patch.object(helpers_neutron.OpenStackNeutron,
+                       "delete_security_group")
     def test_delete_security_group_not_found(self, m_list):
         m_list.side_effect = exception.NotFound
         req = fakes.create_req_test(None, None)
@@ -101,7 +106,8 @@ class TestSecurityGroupControllerNeutron(base.TestController):
                           req,
                           None)
 
-    @mock.patch.object(helpers_neutron.OpenStackNeutron, "create_security_group")
+    @mock.patch.object(helpers_neutron.OpenStackNeutron,
+                       "create_security_group")
     def test_create_security_groups(self, m_create):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
@@ -115,10 +121,13 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         req = fakes.create_req_test_occi(params, categories)
         m_create.return_value = sec_group
         ret = self.controller.create(req, params)
-        expected = self.controller._get_security_group_resources([sec_group])
-        self.assertIsInstance(ret.resources[0], occi_security_group.SecurityGroup)
+        expected = self.controller._get_security_group_resources(
+            [sec_group])
+        self.assertIsInstance(ret.resources[0],
+                              occi_security_group.SecurityGroup)
         self.assertEqual(expected[0], ret.resources[0])
-        m_create.assert_called_with(req, sec_group["title"], sec_group["summary"],
+        m_create.assert_called_with(req, sec_group["title"],
+                                    sec_group["summary"],
                                     sec_group["rules"])
 
     def test_create_error(self):
@@ -133,10 +142,6 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         self.assertRaises(exception.Invalid, self.controller.create, req)
 
     def test_create_invalid_param_rule(self):
-        tenant_id = fakes.tenants["foo"]["id"]
-        sec_group = openstack_helper.build_security_group_from_neutron(
-            fakes.security_groups[tenant_id]
-        )[0]
         params = {"occi.core.title": "group",
                   "occi.securitygroup.rules": "{'wrong': 'value'}]"
                   }

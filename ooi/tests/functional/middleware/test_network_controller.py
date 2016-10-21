@@ -48,7 +48,6 @@ class TestNetNeutronController(test_middleware.TestMiddleware):
                                autospec=True):
             self.app = wsgi.OCCIMiddleware(None)
 
-
     def test_deprecated_configuration(self):
         with warnings.catch_warnings(record=True) as w:
             neutron_endopoint = "/foo"

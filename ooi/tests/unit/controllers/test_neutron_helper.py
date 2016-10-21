@@ -21,8 +21,8 @@ import mock
 
 from ooi.api import helpers
 from ooi.api import helpers_neutron
-from ooi.openstack import helpers as openstack_helper
 from ooi import exception
+from ooi.openstack import helpers as openstack_helper
 from ooi.tests import base
 from ooi.tests import fakes_network as fakes
 from ooi import utils
@@ -546,7 +546,8 @@ class TestNetOpenStackHelper(base.TestCase):
     def test_create_security_groups(self, m_tenant, m_create):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = fakes.security_groups[tenant_id][0]
-        expected = openstack_helper.build_security_group_from_neutron([sec_group])[0]
+        expected = openstack_helper.build_security_group_from_neutron(
+            [sec_group])[0]
         m_tenant.return_value = uuid.uuid4().hex
         group_info = {"name": sec_group["name"], "id": sec_group["id"],
                       "description": sec_group["description"]}
@@ -563,7 +564,8 @@ class TestNetOpenStackHelper(base.TestCase):
     def test_list_security_group(self, m_list):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = fakes.security_groups[tenant_id]
-        expected = openstack_helper.build_security_group_from_neutron(sec_group)
+        expected = openstack_helper.build_security_group_from_neutron(
+            sec_group)
         m_list.return_value = sec_group
         ret = self.helper.list_security_groups(None)
         self.assertEqual(2, ret.__len__())
@@ -584,7 +586,8 @@ class TestNetOpenStackHelper(base.TestCase):
     def test_show_security_group(self, m_list):
         tenant_id = fakes.tenants["foo"]["id"]
         sec_group = fakes.security_groups[tenant_id][0]
-        expected = openstack_helper.build_security_group_from_neutron([sec_group])[0]
+        expected = openstack_helper.build_security_group_from_neutron(
+            [sec_group])[0]
         list_sec = sec_group
         m_list.return_value = list_sec
         ret = self.helper.get_security_group_details(None, None)
