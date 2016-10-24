@@ -90,7 +90,7 @@ class Controller(base.Controller):
                 req, server_id, security_name
             )
             occi_instance = _get_security_link_resources(
-                [link]
+                link
             )[0]
             return occi_instance
         except Exception:
