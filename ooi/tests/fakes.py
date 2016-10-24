@@ -295,6 +295,21 @@ security_groups = {
             ]
         }
 
+    ],
+    tenants["baz"]["id"]: [
+            {
+            "name": "group3",
+            "id": uuid.uuid4().hex,
+            "description": "group three",
+            "rules": [
+                {"from_port": 443,
+                 "to_port": 443, "ip_range": {"cidr": "10.0.0.0/32"},
+                 "ip_protocol": "tcp"},
+                {"from_port": "1000",
+                 "to_port": 2000, "ip_range": {"cidr": "11.0.0.0/32"},
+                 "ip_protocol": "udp"},
+            ]
+        },
     ]
 }
 
@@ -508,8 +523,16 @@ class FakeApp(object):
                            "os-floating-ip-pools")
             self._populate(path, "floating_ip", floating_ips[tenant["id"]],
                            "os-floating-ips")
-            self._populate_ports(path, servers[tenant["id"]],
-                                 ports[tenant["id"]])
+            self._populate_server_links(path, "os-interface",
+                                        "interfaceAttachments",
+                                        servers[tenant["id"]],
+                                        ports[tenant["id"]])
+            self._populate_server_links(path, "os-security-groups",
+                                        "security_groups",
+                                        servers[tenant["id"]],
+                                        security_groups[tenant["id"]])
+            self._populate(path, "security_group", security_groups[tenant["id"]],
+                           "os-security-groups")
             # NOTE(aloga): dict_values un Py3 is not serializable in JSON
             self._populate(path, "image", list(images.values()))
             self._populate(path, "flavor", list(flavors.values()))
@@ -553,16 +576,19 @@ class FakeApp(object):
                 self.routes[obj_path] = create_fake_json_resp(
                     {"volumeAttachment": attach})
 
-    def _populate_ports(self, path, servers_list, ports_list):
+    def _populate_server_links(self, path, resource, obj, servers_list, link_list):
         if servers_list:
-            for p in ports_list:
-                path_base = "%s/servers/%s/%s" % (
-                    path,
-                    servers_list[0]["id"],
-                    "os-interface"
-                )
+            for s in servers_list:
+                list_obj = []
+                for l in link_list:
+                    path_base = "%s/servers/%s/%s" % (
+                        path,
+                        s["id"],
+                        resource
+                    )
+                    list_obj.append(l)
                 self.routes[path_base] = create_fake_json_resp(
-                    {"interfaceAttachments": [p]})
+                        {obj: list_obj})
 
     @webob.dec.wsgify()
     def __call__(self, req):
@@ -642,7 +668,9 @@ class FakeApp(object):
             body = req.json_body.copy()
             action = body.popitem()
             if action[0] in ["os-start", "os-stop", "reboot",
-                             "addFloatingIp", "removeFloatingIp"]:
+                             "addFloatingIp", "removeFloatingIp",
+                             "removeSecurityGroup",
+                             "addSecurityGroup"]:
                 return self._get_from_routes(req)
         elif req.path_info.endswith("os-volume_attachments"):
             return self._do_create_attachment(req)
