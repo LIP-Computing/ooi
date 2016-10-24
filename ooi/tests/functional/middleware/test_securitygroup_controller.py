@@ -28,7 +28,7 @@ from ooi import wsgi
 
 
 class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
-    """Funcional tests OCCI security group controller by using Neutron."""
+    """Functional tests OCCI security group controller by using Neutron."""
 
     def setUp(self):
         super(TestNetSecGroupControllerNeutron, self).setUp()
