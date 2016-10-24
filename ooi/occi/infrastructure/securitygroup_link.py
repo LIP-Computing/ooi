@@ -27,6 +27,7 @@ class SecurityGroupLink(link.Link):
                      attributes, 'securitygrouplink/',
                      related=[link.Link.kind])
 
-    def __init__(self, source, target, id=None):
+    def __init__(self, source, target):
+        link_id = '_'.join([source.id, target.title])
         super(SecurityGroupLink, self).__init__(None, [], source,
-                                                target, id)
+                                                target, link_id)
