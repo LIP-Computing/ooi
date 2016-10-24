@@ -82,23 +82,19 @@ class Controller(base.Controller):
         :param req: request object
         :param id: security group identification
         """
-        link_info = self._get_attachment_from_id(req, id)
-        server_id = link_info["server_id"]
-        security_name = link_info["securitygroup_name"]
-        sec_group = self.os_helper.get_server_security_link(
-            req, server_id, security_name
-        )
-        if sec_group:
-            list_sec = self.os_helper.list_security_groups(req)
-            for sec in list_sec:
-                if sec["title"] == security_name:
-                    link = {"compute_id": server_id,
-                            "securitygroup": sec}
-                    occi_instance = _get_security_link_resources(
-                        [link]
-                    )[0]
-                    return occi_instance
-        raise exception.LinkNotFound(link_id=id)
+        try:
+            link_info = self._get_attachment_from_id(req, id)
+            server_id = link_info["server_id"]
+            security_name = link_info["securitygroup_name"]
+            link = self.os_helper.get_server_security_link(
+                req, server_id, security_name
+            )
+            occi_instance = _get_security_link_resources(
+                [link]
+            )[0]
+            return occi_instance
+        except Exception:
+            raise exception.LinkNotFound(link_id=id)
 
     def create(self, req, body=None):
         """Create a security group link
@@ -128,8 +124,8 @@ class Controller(base.Controller):
                                                    securitygroup_name)
         link = {"compute_id": server_id,
                 "securitygroup": {"title": securitygroup_name}}
-        occi_instance = _get_security_link_resources([link])[0]
-        return occi_instance
+        occi_instance = _get_security_link_resources([link])
+        return collection.Collection(resources=occi_instance)
 
     def delete(self, req, id):
         """Delete security group link
