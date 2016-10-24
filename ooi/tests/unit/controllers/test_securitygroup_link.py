@@ -15,44 +15,38 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import collections
 import uuid
 
 import mock
 
 from ooi.api import helpers
 from ooi.api import securitygroup_link as securitygroup_link_api
-from ooi import exception
 from ooi.occi.core import collection
-from ooi.occi.infrastructure import compute
-from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import securitygroup_link
 from ooi.openstack import helpers as os_helpers
 from ooi.tests import base
 from ooi.tests import fakes as fakes_nova
-from ooi.tests import fakes_network
-from ooi import utils
 
 
 class TestNetworkLinkController(base.TestController):
     def setUp(self):
         super(TestNetworkLinkController, self).setUp()
-        self.controller = securitygroup_link_api.Controller(mock.MagicMock(), None)
+        self.controller = securitygroup_link_api.Controller(
+            mock.MagicMock(), None)
 
     @mock.patch.object(helpers.OpenStackHelper, "list_server_security_links")
     def test_index(self, mock_list):
         tenant_id = fakes_nova.tenants['foo']["id"]
         servers = fakes_nova.servers[tenant_id]
+        sg = fakes_nova.security_groups[tenant_id]
+        segroup = os_helpers.build_security_group_from_nova(sg)[0]
         links = []
         for server in servers:
-            for sec in server["security_groups"]:
-                link = {
-                    "compute_id": server,
-                    "securitygroup": {
-                        "title": sec["name"]
-                    }
-                }
-                links.append(link)
+            link = {
+                "compute_id": server["id"],
+                "securitygroup": segroup
+            }
+            links.append(link)
         mock_list.return_value = links
         ret = self.controller.index(None)
         self.assertIsInstance(ret, collection.Collection)
@@ -73,7 +67,7 @@ class TestNetworkLinkController(base.TestController):
             "securitygroup": sec_group[0]
         }
 
-        mock_get.return_value = link
+        mock_get.return_value = [link]
         mock_list.return_value = sec_group
         ret = self.controller.show(None, link_id)
         self.assertIsInstance(ret, securitygroup_link.SecurityGroupLink)
@@ -108,5 +102,5 @@ class TestNetworkLinkController(base.TestController):
         m_get_id.side_effect = [('', compute_id), ('', sec_name)]
         m_create.return_value = []
         ret = self.controller.create(req, None)
-        #link = ret.resources.pop() # FIXME(jorgece): CREATE AND SHOW retrive a Collection
-        self.assertIsInstance(ret, securitygroup_link.SecurityGroupLink)
+        link = ret.resources.pop()
+        self.assertIsInstance(link, securitygroup_link.SecurityGroupLink)
