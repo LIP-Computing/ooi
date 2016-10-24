@@ -1108,6 +1108,27 @@ class OpenStackHelper(BaseHelper):
         os_req.get_response(self.app)
         return []
 
+    def _get_server_security_group(self, req, server_id):
+        """ Get security group from a server
+
+        :param req: incoming request
+        :param server_id: server id
+        :return: information about the security group
+        """
+        path = "os-security-groups"
+        tenant_id = self.tenant_from_req(req)
+        path = "/%s/servers/%s/%s" % (tenant_id,
+                                      server_id,
+                                      path
+                                      )
+        os_req = self._get_req(req, path=path,
+                               method="GET")
+        response = os_req.get_response(self.app)
+        sec = self.get_from_response(response,
+                                     "security_groups", [])
+        ooi_sec = os_helpers.build_security_group_from_nova(sec)
+        return ooi_sec
+
     def list_server_security_links(self, req):
         """ List security groups associated to servers
 
@@ -1117,15 +1138,13 @@ class OpenStackHelper(BaseHelper):
         link_list = []
         compute_list = self.index(req)
         for c in compute_list:
-            compute_id = c["id"]
-            compute = self.get_server(req, compute_id)
-            server_secgroups = compute.get("security_groups", {})
+            server_id = c["id"]
+            server_secgroups = self._get_server_security_group(
+                req, server_id)
             for sec in server_secgroups:
                 link = {
-                    "compute_id": compute_id,
-                    "securitygroup": {
-                        "title": sec["name"]
-                    }
+                    "compute_id": server_id,
+                    "securitygroup": sec
                 }
                 link_list.append(link)
         return link_list
@@ -1136,17 +1155,16 @@ class OpenStackHelper(BaseHelper):
 
         :param req: incoming request
         :param server_id: server id
-        :param securtygroup_name: security group name
-        :return: information about the security group
+        :param securitygroup_name: security group name
+        :return: information about the link of security group
         """
-        compute = self.get_server(req, server_id)
-        server_secgroups = compute.get("security_groups", {})
-        for server_sec in server_secgroups:
-            if server_sec["name"] == securitygroup_name:
+        ooi_sec = self._get_server_security_group(req, server_id)
+        for sg in ooi_sec:
+            if sg["title"] == securitygroup_name:
                 link = {"compute_id": server_id,
-                        "securitygroup_name": securitygroup_name
+                        "securitygroup": sg
                         }
-                return link
+                return [link]
         return None
 
     def delete_server_security_link(self, req, server_id,

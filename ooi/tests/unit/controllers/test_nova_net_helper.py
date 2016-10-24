@@ -302,3 +302,115 @@ class TestNovaNetOpenStackHelper(base.TestCase):
             self.assertEqual(
                 occi_os_group['rules'][cont]['type'], r["type"])
             cont += 1
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_get_server_security_group(self, mock_tenant, mock_get):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        server_id = uuid.uuid4().hex
+        sc_group = fakes_nova.security_groups[tenant_id]
+        mock_tenant.return_value = tenant_id
+        resp = fakes_network.create_fake_json_resp(
+            {"security_groups": sc_group}, 200
+        )
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        mock_get.return_value = req_mock
+        ret = self.helper._get_server_security_group(None, server_id)
+        segroup = os_helpers.build_security_group_from_nova(
+            sc_group
+        )
+        cont = 0
+        for s in segroup:
+            self.assertEqual(s, ret[cont])
+            cont += 1
+        mock_get.assert_called_with(
+            None, method="GET",
+            path="/%s/servers/%s/os-security-groups" % (tenant_id,
+                                                        server_id),
+        )
+
+    @mock.patch.object(helpers.OpenStackHelper, "index")
+    @mock.patch.object(helpers.OpenStackHelper, "_get_server_security_group")
+    def test_list_server_security_links(self, mock_get, mock_list):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        servers = fakes_nova.servers[tenant_id]
+        mock_list.return_value = servers
+        sg = fakes_nova.security_groups[tenant_id]
+        segroup = os_helpers.build_security_group_from_nova(sg)[0]
+        mock_get.return_value = [segroup]
+        ret = self.helper.list_server_security_links(None)
+        cont = 0
+        for server in servers:
+            self.assertEqual(server["id"],
+                             ret[cont]['compute_id'])
+            self.assertEqual(segroup["title"],
+                             ret[cont]['securitygroup']["title"])
+
+            cont += 1
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_server_security_group")
+    def test_get_server_security_link(self, mock_get):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        server_id = uuid.uuid4().hex
+        sg = fakes_nova.security_groups[tenant_id]
+        segroup = os_helpers.build_security_group_from_nova(sg)[0]
+        mock_get.return_value = [segroup]
+        ret = self.helper.get_server_security_link(None, server_id,
+                                                   segroup["title"])
+        self.assertEqual(server_id,
+                         ret[0]['compute_id'])
+        self.assertEqual(segroup["title"],
+                         ret[0]['securitygroup']["title"])
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_delete_server_security_link(self, mock_tenant, mock_req):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        server_id = uuid.uuid4().hex
+        sg_name = "foo"
+        mock_tenant.return_value = tenant_id
+        resp = fakes_network.create_fake_json_resp(
+            {}, 204
+        )
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        mock_req.return_value = req_mock
+        ret = self.helper.delete_server_security_link(None,
+                                                      server_id,
+                                                      sg_name)
+        self.assertEqual([], ret)
+        mock_req.assert_called_with(
+            None, method="POST",
+            path="/%s/servers/%s/action" % (tenant_id,
+                                            server_id),
+            body='{"removeSecurityGroup": {"name": "%s"}}' % sg_name,
+            content_type='application/json'
+
+        )
+
+    @mock.patch.object(helpers.OpenStackHelper, "_get_req")
+    @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
+    def test_create_server_security_link(self, mock_tenant, mock_req):
+        tenant_id = fakes_nova.tenants["foo"]["id"]
+        server_id = uuid.uuid4().hex
+        sg_name = "foo"
+        mock_tenant.return_value = tenant_id
+        resp = fakes_network.create_fake_json_resp(
+            {}, 204
+        )
+        req_mock = mock.MagicMock()
+        req_mock.get_response.return_value = resp
+        mock_req.return_value = req_mock
+        ret = self.helper.create_server_security_link(None,
+                                                      server_id,
+                                                      sg_name)
+        self.assertEqual([], ret)
+        mock_req.assert_called_with(
+            None, method="POST",
+            path="/%s/servers/%s/action" % (tenant_id,
+                                            server_id),
+            body='{"addSecurityGroup": {"name": "%s"}}' % sg_name,
+            content_type='application/json'
+
+        )
