@@ -30,7 +30,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.app = self.get_app()
 
     def test_list_secgroup_links(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         for url in ("/securitygrouplink/", "/securitygrouplink"):
             req = self._build_req(url, tenant_id, method="GET")
             resp = req.get_response(self.app)
@@ -51,7 +51,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.assertExpectedResult(expected, resp)
 
     def test_secgroup_show(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         security_groups = fakes.security_groups[tenant_id]
         for s in fakes.servers[tenant_id]:
             server_id = s["id"]
@@ -73,7 +73,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
                                                   resp)
 
     def test_secgroup_show_error_404(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         for s in fakes.servers[tenant_id]:
             server_id = s["id"]
             link_id = '_'.join([server_id,
@@ -85,7 +85,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
             self.assertEqual(404, resp.status_code)
 
     def test_create_link(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
         sg_id = fakes.security_groups[tenant_id][0]["id"]
 
@@ -115,7 +115,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.assertDefaults(resp)
 
     def test_create_link_error_security_group(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
         sg_id = uuid.uuid4().hex
 
@@ -139,7 +139,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.assertDefaults(resp)
 
     def test_create_link_error_attributes(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
         sg_id = uuid.uuid4().hex
 
@@ -163,7 +163,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.assertDefaults(resp)
 
     def test_delete(self):
-        tenant_id = fakes.tenants['foo']["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         server_id = fakes.servers[tenant_id][0]["id"]
         sg_id = fakes.security_groups[tenant_id][0]["id"]
         link_id = "_".join([server_id, sg_id])
@@ -176,8 +176,8 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         self.assertDefaults(resp)
 
     def test_delete_404(self):
-        tenant_id = fakes.tenants['foo']["id"]
-        link_id = "_".join(["foo", "baa"])
+        tenant_id = fakes.tenants["baz"]["id"]
+        link_id = "_".join(["baz", "baa"])
 
         req = self._build_req("/securitygrouplink/%s" % link_id,
                               tenant_id,

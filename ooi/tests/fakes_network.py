@@ -30,6 +30,8 @@ application_url = "https://foo.example.org:8774/ooiv1"
 tenants = {
     "foo": {"id": uuid.uuid4().hex,
             "name": "foo"},
+    "baz": {"id": uuid.uuid4().hex,
+            "name": "foo"},
     "bar": {"id": uuid.uuid4().hex,
             "name": "bar"},
     "public": {"id": uuid.uuid4().hex,
@@ -156,7 +158,8 @@ network_links = {
 
 security_groups = {
     tenants["bar"]["id"]: [],
-    tenants["foo"]["id"]: [
+    tenants["foo"]["id"]: [],
+    tenants["baz"]["id"]: [
         {
             "name": "group1",
             "id": uuid.uuid4().hex,

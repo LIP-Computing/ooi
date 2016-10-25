@@ -36,7 +36,7 @@ class TestNetworkLinkController(base.TestController):
 
     @mock.patch.object(helpers.OpenStackHelper, "list_server_security_links")
     def test_index(self, mock_list):
-        tenant_id = fakes_nova.tenants['foo']["id"]
+        tenant_id = fakes_nova.tenants['bar']["id"]
         servers = fakes_nova.servers[tenant_id]
         sg = fakes_nova.security_groups[tenant_id]
         segroup = os_helpers.build_security_group_from_nova(sg)[0]
@@ -54,7 +54,7 @@ class TestNetworkLinkController(base.TestController):
     @mock.patch.object(helpers.OpenStackHelper, "get_server_security_link")
     @mock.patch.object(helpers.OpenStackHelper, "list_security_groups")
     def test_show(self, mock_list, mock_get):
-        tenant_id = fakes_nova.tenants['foo']["id"]
+        tenant_id = fakes_nova.tenants['baz']["id"]
         server = fakes_nova.servers[tenant_id][0]
         server_id = server['id']
         secgroup_name = server['security_groups'][0]["name"]
@@ -74,7 +74,7 @@ class TestNetworkLinkController(base.TestController):
 
     @mock.patch.object(helpers.OpenStackHelper, "delete_server_security_link")
     def test_delete(self, mock_del):
-        tenant_id = fakes_nova.tenants['foo']["id"]
+        tenant_id = fakes_nova.tenants['baz']["id"]
         server = fakes_nova.servers[tenant_id][0]
         server_id = server['id']
         secgroup_name = server['security_groups'][0]["name"]

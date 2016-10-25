@@ -35,7 +35,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
                        "list_security_groups")
     def test_list_security_group(self, m_list):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
             fakes.security_groups[tenant_id]
         )
@@ -52,7 +52,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
                        "list_security_groups")
     def test_list_security_group_empty(self, m_list):
-        tenant_id = fakes.tenants["bar"]["id"]
+        tenant_id = fakes.tenants["foo"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
             fakes.security_groups[tenant_id]
         )
@@ -64,7 +64,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
                        "get_security_group_details")
     def test_show_security_group(self, m_list):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
             [fakes.security_groups[tenant_id][0]]
         )
@@ -80,7 +80,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group_not_found(self, m_list):
-        tenant_id = fakes.tenants["bar"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
             fakes.security_groups[tenant_id]
         )
@@ -111,7 +111,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
     @mock.patch.object(helpers_neutron.OpenStackNeutron,
                        "create_security_group")
     def test_create_security_groups(self, m_create):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = openstack_helper.build_security_group_from_neutron(
             fakes.security_groups[tenant_id]
         )[0]

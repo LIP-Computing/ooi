@@ -544,7 +544,7 @@ class TestNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "create_resource")
     @mock.patch.object(helpers.BaseHelper, "tenant_from_req")
     def test_create_security_groups(self, m_tenant, m_create):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = fakes.security_groups[tenant_id][0]
         expected = openstack_helper.build_security_group_from_neutron(
             [sec_group])[0]
@@ -562,7 +562,7 @@ class TestNetOpenStackHelper(base.TestCase):
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "list_resources")
     def test_list_security_group(self, m_list):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = fakes.security_groups[tenant_id]
         expected = openstack_helper.build_security_group_from_neutron(
             sec_group)
@@ -584,7 +584,7 @@ class TestNetOpenStackHelper(base.TestCase):
 
     @mock.patch.object(helpers_neutron.OpenStackNeutron, "get_resource")
     def test_show_security_group(self, m_list):
-        tenant_id = fakes.tenants["foo"]["id"]
+        tenant_id = fakes.tenants["baz"]["id"]
         sec_group = fakes.security_groups[tenant_id][0]
         expected = openstack_helper.build_security_group_from_neutron(
             [sec_group])[0]

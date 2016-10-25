@@ -266,8 +266,8 @@ volumes[tenants["baz"]["id"]][0]["attachments"] = [{
 
 
 security_groups = {
-    tenants["bar"]["id"]: [],
-    tenants["foo"]["id"]: [
+    tenants["foo"]["id"]: [],
+    tenants["baz"]["id"]: [
         {
             "name": "group1",
             "id": uuid.uuid4().hex,
@@ -296,7 +296,7 @@ security_groups = {
         }
 
     ],
-    tenants["baz"]["id"]: [
+    tenants["bar"]["id"]: [
         {
             "name": "group3",
             "id": uuid.uuid4().hex,
@@ -596,12 +596,12 @@ class FakeApp(object):
         if servers_list:
             for s in servers_list:
                 list_obj = []
+                path_base = "%s/servers/%s/%s" % (
+                    path,
+                    s["id"],
+                    resource
+                )
                 for l in link_list:
-                    path_base = "%s/servers/%s/%s" % (
-                        path,
-                        s["id"],
-                        resource
-                    )
                     list_obj.append(l)
                 self.routes[path_base] = create_fake_json_resp(
                     {obj: list_obj})

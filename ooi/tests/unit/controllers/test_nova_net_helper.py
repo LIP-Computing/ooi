@@ -186,7 +186,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_list_security_groups(self, m_t, m_rq):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         m_t.return_value = tenant_id
         sc_groups = fakes_nova.security_groups[tenant_id]
         resp = fakes_network.create_fake_json_resp(
@@ -208,7 +208,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_delete_security_groups(self, m_t, m_rq):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         m_t.return_value = tenant_id
         sc_id = fakes_nova.security_groups[tenant_id][0]['id']
         req_mock = mock.MagicMock()
@@ -224,7 +224,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_get_security_group(self, m_t, m_rq):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         m_t.return_value = tenant_id
         sc_group = fakes_nova.security_groups[tenant_id][0]
         id = sc_group['id']
@@ -261,7 +261,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_create_security_group(self, m_t, m_rq):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         m_t.return_value = tenant_id
         sc_group = fakes_nova.security_groups[tenant_id][0]
         occi_os_group = os_helpers.build_security_group_from_nova(
@@ -306,7 +306,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_get_server_security_group(self, mock_tenant, mock_get):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
         sc_group = fakes_nova.security_groups[tenant_id]
         mock_tenant.return_value = tenant_id
@@ -333,7 +333,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "index")
     @mock.patch.object(helpers.OpenStackHelper, "_get_server_security_group")
     def test_list_server_security_links(self, mock_get, mock_list):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         servers = fakes_nova.servers[tenant_id]
         mock_list.return_value = servers
         sg = fakes_nova.security_groups[tenant_id]
@@ -351,7 +351,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
 
     @mock.patch.object(helpers.OpenStackHelper, "_get_server_security_group")
     def test_get_server_security_link(self, mock_get):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
         sg = fakes_nova.security_groups[tenant_id]
         segroup = os_helpers.build_security_group_from_nova(sg)[0]
@@ -366,9 +366,9 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_delete_server_security_link(self, mock_tenant, mock_req):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
-        sg_name = "foo"
+        sg_name = "baz"
         mock_tenant.return_value = tenant_id
         sc_group = fakes_nova.security_groups[tenant_id][0]
         sg_name = sc_group["name"]
@@ -399,9 +399,9 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     @mock.patch.object(helpers.OpenStackHelper, "_get_req")
     @mock.patch.object(helpers.OpenStackHelper, "tenant_from_req")
     def test_create_server_security_link(self, mock_tenant, mock_req):
-        tenant_id = fakes_nova.tenants["foo"]["id"]
+        tenant_id = fakes_nova.tenants["baz"]["id"]
         server_id = uuid.uuid4().hex
-        sg_id = "foo"
+        sg_id = "baz"
         mock_tenant.return_value = tenant_id
         sc_group = fakes_nova.security_groups[tenant_id][0]
         resp_get = fakes_network.create_fake_json_resp(

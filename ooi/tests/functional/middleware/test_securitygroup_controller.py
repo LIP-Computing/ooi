@@ -35,7 +35,7 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
         self.schema = ('http://schemas.ogf.org/occi/'
                        'infrastructure#securitygroup')
         self.application_url = fakes_network.application_url
-        neutron_ooi_endpoint = "foo"
+        neutron_ooi_endpoint = "baz"
 
         def mock_endpoint(self, bar):
             if bar == "neutron_ooi_endpoint":
@@ -72,7 +72,7 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_list_securitygroup(self, m):
-        tenant = fakes_network.tenants["foo"]
+        tenant = fakes_network.tenants["baz"]
         out = fakes_network.create_fake_json_resp(
             {
                 "security_groups": fakes_network.security_groups[tenant['id']]
@@ -95,7 +95,7 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_show_securitygroup(self, m):
-        tenant = fakes_network.tenants["foo"]
+        tenant = fakes_network.tenants["baz"]
         for s in fakes_network.security_groups[tenant["id"]]:
             s_out = fakes_network.create_fake_json_resp(
                 {"security_group": s}, 200)
@@ -115,7 +115,7 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_delete_securitygroup(self, m):
-        tenant = fakes_network.tenants["foo"]
+        tenant = fakes_network.tenants["baz"]
         empty_out = fakes_network.create_fake_json_resp([], 204)
         mock_empty = mock.Mock(webob.Request)
         mock_empty.get_response.return_value = empty_out
@@ -133,7 +133,7 @@ class TestNetSecGroupControllerNeutron(test_middleware.TestMiddleware):
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_create_securitygroup(self, m):
         array_mocks = []
-        tenant = fakes_network.tenants["foo"]
+        tenant = fakes_network.tenants["baz"]
         fake_sc = fakes_network.security_groups[tenant['id']][0]
         sc_out = fakes_network.create_fake_json_resp(
             {"security_group": fake_sc}, 200)
@@ -218,7 +218,7 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_list_securitygroup(self, m):
-        tenant = fakes_nova.tenants["foo"]
+        tenant = fakes_nova.tenants["baz"]
         out = fakes_nova.create_fake_json_resp(
             {"security_groups": fakes_nova.security_groups[tenant['id']]}, 200)
         m.return_value.get_response.return_value = out
@@ -239,7 +239,7 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_show_securitygroup(self, m):
-        tenant = fakes_nova.tenants["foo"]
+        tenant = fakes_nova.tenants["baz"]
         for s in fakes_nova.security_groups[tenant["id"]]:
             s_out = fakes_nova.create_fake_json_resp(
                 {"security_group": s}, 200)
@@ -259,7 +259,7 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
 
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_delete_securitygroup(self, m):
-        tenant = fakes_nova.tenants["foo"]
+        tenant = fakes_nova.tenants["baz"]
         empty_out = fakes_nova.create_fake_json_resp([], 204)
         mock_empty = mock.Mock(webob.Request)
         mock_empty.get_response.return_value = empty_out
@@ -277,7 +277,7 @@ class TestNetSecGroupControllerNova(test_middleware.TestMiddleware):
     @mock.patch.object(helpers.BaseHelper, "_get_req")
     def test_create_securitygroup(self, m):
         array_mocks = []
-        tenant = fakes_nova.tenants["foo"]
+        tenant = fakes_nova.tenants["baz"]
         fake_sc = fakes_nova.security_groups[tenant['id']][0]
         sc_out = fakes_nova.create_fake_json_resp(
             {"security_group": fake_sc}, 200)
