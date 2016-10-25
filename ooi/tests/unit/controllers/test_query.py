@@ -24,6 +24,8 @@ from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
+from ooi.occi.infrastructure import securitygroup
+from ooi.occi.infrastructure import securitygroup_link
 from ooi.occi.infrastructure import storage
 from ooi.occi.infrastructure import storage_link
 from ooi.occi.infrastructure import templates as infra_templates
@@ -81,6 +83,10 @@ class TestQueryController(base.TestController):
             storage.backup,
             storage.snapshot,
             storage.resize,
+
+            # OCCI infra Security Groups
+            securitygroup.SecurityGroupResource.kind,
+            securitygroup_link.SecurityGroupLink.kind,
 
             # OCCI infra network
             network.NetworkResource.kind,
@@ -146,6 +152,10 @@ class TestQueryController(base.TestController):
             storage.backup,
             storage.snapshot,
             storage.resize,
+
+            # OCCI infra Security Groups
+            securitygroup.SecurityGroupResource.kind,
+            securitygroup_link.SecurityGroupLink.kind,
 
             # OCCI infra network
             network.NetworkResource.kind,

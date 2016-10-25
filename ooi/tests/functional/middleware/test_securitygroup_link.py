@@ -16,14 +16,13 @@
 
 import uuid
 
-from ooi.api import helpers
 from ooi.tests import fakes
 from ooi.tests.functional.middleware import test_middleware
 from ooi import utils
 
 
 class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
-    """Test OCCI security link controller."""
+    """Functional OCCI security link controller tests."""
 
     def setUp(self):
         super(TestSecurityGroupLinkController, self).setUp()
@@ -69,8 +68,21 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
                                       tenant_id, method="GET")
                 resp = req.get_response(self.app)
                 self.assertContentType(resp)
+                self.assertEqual(200, resp.status_code)
                 self.assertResultIncludesLinkAttr(link_id, source, target,
                                                   resp)
+
+    def test_secgroup_show_error_404(self):
+        tenant_id = fakes.tenants['foo']["id"]
+        for s in fakes.servers[tenant_id]:
+            server_id = s["id"]
+            link_id = '_'.join([server_id,
+                               uuid.uuid4().hex]
+                               )
+            req = self._build_req("/securitygrouplink/%s" % link_id,
+                                  tenant_id, method="GET")
+            resp = req.get_response(self.app)
+            self.assertEqual(404, resp.status_code)
 
     def test_create_link(self):
         tenant_id = fakes.tenants['foo']["id"]
@@ -80,8 +92,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
         server_url = utils.join_url(self.application_url + "/",
                                     "compute/%s" % server_id)
         sg_url = utils.join_url(self.application_url + "/",
-                                 "securitygroup/%s" % sg_id)
-        pool_name = 'pool'
+                                "securitygroup/%s" % sg_id)
         headers = {
             'Category': ('securitygrouplink;'
                          'scheme="http://schemas.ogf.org/occi/'
@@ -101,4 +112,76 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
                                     "securitygrouplink/%s" % link_id))]
         self.assertEqual(200, resp.status_code)
         self.assertExpectedResult(expected, resp)
+        self.assertDefaults(resp)
+
+    def test_create_link_error_security_group(self):
+        tenant_id = fakes.tenants['foo']["id"]
+        server_id = uuid.uuid4().hex
+        sg_id = uuid.uuid4().hex
+
+        server_url = utils.join_url(self.application_url + "/",
+                                    "compute/%s" % server_id)
+        sg_url = utils.join_url(self.application_url + "/",
+                                "securitygroup/%s" % sg_id)
+        headers = {
+            'Category': ('securitygrouplink;'
+                         'scheme="http://schemas.ogf.org/occi/'
+                         'infrastructure#";'
+                         'class="kind",'),
+            'X-OCCI-Attribute': ('occi.core.source="%s", '
+                                 'occi.core.target="%s"'
+                                 ) % (server_url, sg_url)
+        }
+        req = self._build_req("/securitygrouplink", tenant_id, method="POST",
+                              headers=headers)
+        resp = req.get_response(self.app)
+        self.assertEqual(404, resp.status_code)
+        self.assertDefaults(resp)
+
+    def test_create_link_error_attributes(self):
+        tenant_id = fakes.tenants['foo']["id"]
+        server_id = uuid.uuid4().hex
+        sg_id = uuid.uuid4().hex
+
+        server_url = utils.join_url(self.application_url + "/",
+                                    "compute/%s" % server_id)
+        sg_url = utils.join_url(self.application_url + "/",
+                                "securitygroup/%s" % sg_id)
+        headers = {
+            'Category': ('securitygrouplink;'
+                         'scheme="http://schemas.ogf.org/occi/'
+                         'infrastructure#";'
+                         'class="kind",'),
+            'X-OCCI-Attribute': ('occi.core.source="%s", '
+                                 'occi.core.targetwrong="%s"'
+                                 ) % (server_url, sg_url)
+        }
+        req = self._build_req("/securitygrouplink", tenant_id, method="POST",
+                              headers=headers)
+        resp = req.get_response(self.app)
+        self.assertEqual(400, resp.status_code)
+        self.assertDefaults(resp)
+
+    def test_delete(self):
+        tenant_id = fakes.tenants['foo']["id"]
+        server_id = fakes.servers[tenant_id][0]["id"]
+        sg_id = fakes.security_groups[tenant_id][0]["id"]
+        link_id = "_".join([server_id, sg_id])
+
+        req = self._build_req("/securitygrouplink/%s" % link_id,
+                              tenant_id,
+                              method="DELETE")
+        resp = req.get_response(self.app)
+        self.assertEqual(204, resp.status_code)
+        self.assertDefaults(resp)
+
+    def test_delete_404(self):
+        tenant_id = fakes.tenants['foo']["id"]
+        link_id = "_".join(["foo", "baa"])
+
+        req = self._build_req("/securitygrouplink/%s" % link_id,
+                              tenant_id,
+                              method="DELETE")
+        resp = req.get_response(self.app)
+        self.assertEqual(404, resp.status_code)
         self.assertDefaults(resp)

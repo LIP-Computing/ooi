@@ -473,6 +473,20 @@ def fake_query_results():
         'scheme="http://schemas.openstack.org/instance/credentials#"; '
         'class="mixin"; title="Contextualization extension - public_key"')
 
+    # OCCI Infrastructure Security Groups
+    cats.append(
+        'securitygroup; '
+        'scheme="http://schemas.ogf.org/occi/infrastructure#"; '
+        'class="kind"; title="securitygroup resource"; '
+        'rel="http://schemas.ogf.org/occi/core#resource"; '
+        'location="%s/securitygroup/"' % application_url)
+    cats.append(
+        'securitygrouplink; '
+        'scheme="http://schemas.ogf.org/occi/infrastructure#"; '
+        'class="kind"; title="security group link resource"; '
+        'rel="http://schemas.ogf.org/occi/core#link"; '
+        'location="%s/securitygrouplink/"' % application_url)
+
     result = []
     for c in cats:
         result.append(("Category", c))

@@ -23,6 +23,8 @@ from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
+from ooi.occi.infrastructure import securitygroup
+from ooi.occi.infrastructure import securitygroup_link
 from ooi.occi.infrastructure import storage
 from ooi.occi.infrastructure import storage_link
 from ooi.occi.infrastructure import templates as infra_templates
@@ -88,6 +90,11 @@ class Controller(base.Controller):
         l.append(storage.StorageResource.kind)
         l.append(storage_link.StorageLink.kind)
         l.extend(storage.StorageResource.actions)
+
+        # OCCI infra Security Groups
+        l.append(securitygroup.SecurityGroupResource.kind)
+        l.append(securitygroup_link.SecurityGroupLink.kind)
+        l.extend(securitygroup.SecurityGroupResource.actions)
 
         # OCCI infra network
         l.append(network.NetworkResource.kind)
