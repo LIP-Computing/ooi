@@ -1137,14 +1137,29 @@ class OpenStackHelper(BaseHelper):
         ooi_sec = os_helpers.build_security_group_from_nova(sec)
         return ooi_sec
 
-    def list_server_security_links(self, req):
+    def list_server_security_groups(self, req,
+                                    server_id=None):
+        """List security groups associated to a server
+
+        :param req: incoming request
+        :param server_id: server id
+        :return: security groups associated to servers
+        """
+        return self._get_server_security_group(
+            req, server_id)
+
+    def list_server_security_links(self, req, server_id=None):
         """List security groups associated to servers
 
         :param req: incoming request
+        :param server_id: server id
         :return: security groups associated to servers
         """
         link_list = []
-        compute_list = self.index(req)
+        if server_id:
+            compute_list = [self.get_server(req, server_id)]
+        else:
+            compute_list = self.index(req)
         for c in compute_list:
             server_id = c["id"]
             server_secgroups = self._get_server_security_group(

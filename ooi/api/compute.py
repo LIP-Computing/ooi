@@ -24,6 +24,8 @@ from ooi import exception
 from ooi.occi.core import collection
 from ooi.occi.infrastructure import compute
 from ooi.occi.infrastructure import network
+from ooi.occi.infrastructure import securitygroup
+from ooi.occi.infrastructure import securitygroup_link
 from ooi.occi.infrastructure import storage
 from ooi.occi.infrastructure import storage_link
 from ooi.occi import validator as occi_validator
@@ -248,6 +250,13 @@ class Controller(ooi.api.base.Controller):
             st = storage.StorageResource(title="storage", id=v["volumeId"])
             comp.add_link(storage_link.StorageLink(comp, st,
                                                    deviceid=v["device"]))
+        # security group links
+        sgs = self.os_helper.list_server_security_groups(req, s["id"])
+        for sg in sgs:
+            sg_link = securitygroup.SecurityGroupResource(
+                title=sg["title"], id=sg["id"], rules=sg["rules"])
+            comp.add_link(securitygroup_link.SecurityGroupLink(comp,
+                                                               sg_link))
 
         # network links
         addresses = s.get("addresses", {})
