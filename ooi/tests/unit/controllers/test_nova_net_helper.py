@@ -357,7 +357,7 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         segroup = os_helpers.build_security_group_from_nova(sg)[0]
         mock_get.return_value = [segroup]
         ret = self.helper.get_server_security_link(None, server_id,
-                                                   segroup["title"])
+                                                   segroup["id"])
         self.assertEqual(server_id,
                          ret[0]['compute_id'])
         self.assertEqual(segroup["title"],
@@ -370,12 +370,19 @@ class TestNovaNetOpenStackHelper(base.TestCase):
         server_id = uuid.uuid4().hex
         sg_name = "foo"
         mock_tenant.return_value = tenant_id
-        resp = fakes_network.create_fake_json_resp(
+        sc_group = fakes_nova.security_groups[tenant_id][0]
+        sg_name = sc_group["name"]
+        resp_get = fakes_network.create_fake_json_resp(
+            {"security_group": sc_group}, 200
+        )
+        req_mock_get = mock.MagicMock()
+        req_mock_get.get_response.return_value = resp_get
+        resp_cre = fakes_network.create_fake_json_resp(
             {}, 204
         )
-        req_mock = mock.MagicMock()
-        req_mock.get_response.return_value = resp
-        mock_req.return_value = req_mock
+        req_mock_del = mock.MagicMock()
+        req_mock_del.get_response.return_value = resp_cre
+        mock_req.side_effect = [req_mock_get, req_mock_del]
         ret = self.helper.delete_server_security_link(None,
                                                       server_id,
                                                       sg_name)
@@ -394,18 +401,25 @@ class TestNovaNetOpenStackHelper(base.TestCase):
     def test_create_server_security_link(self, mock_tenant, mock_req):
         tenant_id = fakes_nova.tenants["foo"]["id"]
         server_id = uuid.uuid4().hex
-        sg_name = "foo"
+        sg_id = "foo"
         mock_tenant.return_value = tenant_id
-        resp = fakes_network.create_fake_json_resp(
+        sc_group = fakes_nova.security_groups[tenant_id][0]
+        resp_get = fakes_network.create_fake_json_resp(
+            {"security_group": sc_group}, 200
+        )
+        req_mock_get = mock.MagicMock()
+        req_mock_get.get_response.return_value = resp_get
+        resp_create = fakes_network.create_fake_json_resp(
             {}, 204
         )
-        req_mock = mock.MagicMock()
-        req_mock.get_response.return_value = resp
-        mock_req.return_value = req_mock
+        req_mock_cre = mock.MagicMock()
+        req_mock_cre.get_response.return_value = resp_create
+        mock_req.side_effect = [req_mock_get, req_mock_cre]
         ret = self.helper.create_server_security_link(None,
                                                       server_id,
-                                                      sg_name)
+                                                      sg_id)
         self.assertEqual([], ret)
+        sg_name = sc_group["name"]
         mock_req.assert_called_with(
             None, method="POST",
             path="/%s/servers/%s/action" % (tenant_id,

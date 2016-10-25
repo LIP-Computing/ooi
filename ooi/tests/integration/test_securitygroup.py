@@ -52,7 +52,7 @@ class TestIntegrationSecGroupsLink(TestIntegration):
                               securitygroup_link.SecurityGroupLink)
 
     def test_show(self):
-        htts_sec = "2732a3ce-b562-4942-8c30-004b9f860fb3_https"
+        htts_sec = '2732a3ce-b562-4942-8c30-004b9f860fb3_808c289a-4cb0-44dc-b6a2-ca62ec584208'
         resources = self.controller.show(self.req, htts_sec)
         self.assertIsInstance(resources,
                               securitygroup_link.SecurityGroupLink)

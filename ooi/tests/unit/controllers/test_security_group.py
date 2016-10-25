@@ -135,8 +135,7 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         schema1 = occi_security_group.SecurityGroupResource.kind.scheme
         net = test_networks[0]
         schemes = {schema1: net}
-        parameters = {"occi.core.title": "name",
-                      }
+        parameters = {"occi.core.title": "name"}
         req = fakes.create_req_test(parameters, schemes)
 
         self.assertRaises(exception.Invalid, self.controller.create, req)

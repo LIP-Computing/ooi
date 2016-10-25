@@ -34,8 +34,8 @@ def _get_security_link_resources(link_list):
         for l in link_list:
             compute_id = l['compute_id']
             sec = l['securitygroup']
-            sec_id = sec.get("id", "")
-            sec_name = sec.get("title")
+            sec_id = sec.get("id")
+            sec_name = sec.get("title", "")
             sec_rules = sec.get("rules", [])
             s = securitygroup.SecurityGroupResource(title=sec_name,
                                                     id=sec_id,
@@ -61,9 +61,9 @@ class Controller(base.Controller):
 
     def _get_attachment_from_id(self, req, attachment_id):
         try:
-            server_id, security_name = attachment_id.split('_', 1)
+            server_id, security_id = attachment_id.split('_', 1)
             return {"server_id": server_id,
-                    "securitygroup_name": security_name}
+                    "securitygroup_id": security_id}
         except ValueError:
             raise exception.LinkNotFound(link_id=attachment_id)
 
@@ -85,7 +85,7 @@ class Controller(base.Controller):
         try:
             link_info = self._get_attachment_from_id(req, id)
             server_id = link_info["server_id"]
-            security_name = link_info["securitygroup_name"]
+            security_name = link_info["securitygroup_id"]
             link = self.os_helper.get_server_security_link(
                 req, server_id, security_name
             )
@@ -112,7 +112,7 @@ class Controller(base.Controller):
         validator = occi_validator.Validator(obj)
         validator.validate(scheme)
         attrs = obj.get("attributes", {})
-        _, securitygroup_name = ooi.api.helpers.get_id_with_kind(
+        _, securitygroup_id = ooi.api.helpers.get_id_with_kind(
             req,
             attrs.get("occi.core.target"),
             securitygroup.SecurityGroupResource.kind)
@@ -120,10 +120,12 @@ class Controller(base.Controller):
             req,
             attrs.get("occi.core.source"),
             compute.ComputeResource.kind)
-        self.os_helper.create_server_security_link(req, server_id,
-                                                   securitygroup_name)
+        self.os_helper.create_server_security_link(
+            req, server_id,
+            securitygroup_id)
         link = {"compute_id": server_id,
-                "securitygroup": {"title": securitygroup_name}}
+                "securitygroup": {"id": securitygroup_id}
+                }
         occi_instance = _get_security_link_resources([link])
         return collection.Collection(resources=occi_instance)
 
@@ -135,7 +137,10 @@ class Controller(base.Controller):
         """
         link_info = self._get_attachment_from_id(req, id)
         server_id = link_info["server_id"]
-        security_name = link_info["securitygroup_name"]
-        self.os_helper.delete_server_security_link(
-            req, server_id, security_name)
+        security_id = link_info["securitygroup_id"]
+        try:
+            self.os_helper.delete_server_security_link(
+                req, server_id, security_id)
+        except Exception:
+            raise exception.LinkNotFound(link_id=id)
         return []

@@ -28,6 +28,6 @@ class SecurityGroupLink(link.Link):
                      related=[link.Link.kind])
 
     def __init__(self, source, target):
-        link_id = '_'.join([source.id, target.title])
+        link_id = '_'.join([source.id, target.id])
         super(SecurityGroupLink, self).__init__(None, [], source,
                                                 target, link_id)

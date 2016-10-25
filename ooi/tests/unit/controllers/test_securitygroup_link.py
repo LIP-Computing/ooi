@@ -88,18 +88,18 @@ class TestNetworkLinkController(base.TestController):
     @mock.patch("ooi.api.helpers.get_id_with_kind")
     def test_create(self, m_get_id, m_validator, m_create):
         compute_id = uuid.uuid4().hex
-        sec_name = uuid.uuid4().hex
+        sec_id = uuid.uuid4().hex
         obj = {
             "attributes": {
-                "occi.core.target": sec_name,
-                  "occi.core.source": compute_id
+                "occi.core.target": sec_id,
+                "occi.core.source": compute_id
             }
         }
         req = self._build_req(uuid.uuid4().hex)
         req.get_parser = mock.MagicMock()
         req.get_parser.return_value.return_value.parse.return_value = obj
         m_validator.validate.return_value = True
-        m_get_id.side_effect = [('', compute_id), ('', sec_name)]
+        m_get_id.side_effect = [('', compute_id), ('', sec_id)]
         m_create.return_value = []
         ret = self.controller.create(req, None)
         link = ret.resources.pop()

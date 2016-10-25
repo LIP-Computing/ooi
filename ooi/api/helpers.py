@@ -1006,8 +1006,8 @@ class OpenStackHelper(BaseHelper):
         os_req.get_response(self.app)
         return []
 
-    def get_security_group_details(self, req, sec_id):
-        """Get info about a security group.
+    def _get_security_group(self, req, sec_id):
+        """Retrieve info about a security group.
 
         :param req: the incoming request
         :param sec_id: security group id to show
@@ -1018,8 +1018,16 @@ class OpenStackHelper(BaseHelper):
         os_req = self._get_req(req, path=path,
                                method="GET")
         response = os_req.get_response(self.app)
-        nets = self.get_from_response(response, "security_group", [])
-        ooi_sec = os_helpers.build_security_group_from_nova([nets])
+        return self.get_from_response(response, "security_group", [])
+
+    def get_security_group_details(self, req, sec_id):
+        """Get details about a security group.
+
+        :param req: the incoming request
+        :param sec_id: security group id to show
+        """
+        net = self._get_security_group(req, sec_id)
+        ooi_sec = os_helpers.build_security_group_from_nova([net])
         return ooi_sec[0]
 
     def list_security_groups(self, req):
@@ -1150,17 +1158,17 @@ class OpenStackHelper(BaseHelper):
         return link_list
 
     def get_server_security_link(self, req, server_id,
-                                 securitygroup_name):
+                                 securitygroup_id):
         """ Show security group link from a server
 
         :param req: incoming request
         :param server_id: server id
-        :param securitygroup_name: security group name
+        :param securitygroup_id: security group id
         :return: information about the link of security group
         """
         ooi_sec = self._get_server_security_group(req, server_id)
         for sg in ooi_sec:
-            if sg["title"] == securitygroup_name:
+            if sg["id"] == securitygroup_id:
                 link = {"compute_id": server_id,
                         "securitygroup": sg
                         }
@@ -1168,17 +1176,21 @@ class OpenStackHelper(BaseHelper):
         return None
 
     def delete_server_security_link(self, req, server_id,
-                                    securitygroup_name):
+                                    securitygroup_id):
         """ Delete security group link from a server
 
         :param req: incoming request
         :param server_id: server id
-        :param securitygroup_name: segurity group name
+        :param securitygroup_id: segurity group id
         :return: empty
         """
         tenant_id = self.tenant_from_req(req)
         path = "/%s/servers/%s/action" % (tenant_id, server_id)
-        param = {"name": securitygroup_name}
+        sg = self._get_security_group(req, securitygroup_id)
+        if "name" not in sg:
+            raise exception.NotFound("Security group %s not found."
+                                     % securitygroup_id)
+        param = {"name": sg["name"]}
         body = utils.make_body('removeSecurityGroup', param)
         os_req = self._get_req(req,
                                path=path,
@@ -1189,17 +1201,21 @@ class OpenStackHelper(BaseHelper):
         return []
 
     def create_server_security_link(self, req, server_id,
-                                    securitygroup_name):
+                                    securitygroup_id):
         """ Create security group link in a server
 
         :param req: incoming request
         :param server_id: server id
-        :param securitygroup_name: segurity group name
+        :param securitygroup_id: segurity group id
         :return: empty
         """
         tenant_id = self.tenant_from_req(req)
         path = "/%s/servers/%s/action" % (tenant_id, server_id)
-        param = {"name": securitygroup_name}
+        sg = self._get_security_group(req, securitygroup_id)
+        if "name" not in sg:
+            raise exception.NotFound("Security group %s not found."
+                                     % securitygroup_id)
+        param = {"name": sg["name"]}
         body = utils.make_body('addSecurityGroup', param)
         os_req = self._get_req(req,
                                path=path,

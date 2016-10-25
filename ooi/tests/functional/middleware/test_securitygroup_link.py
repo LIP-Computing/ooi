@@ -44,7 +44,7 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
                          utils.join_url(self.application_url + "/",
                                         "securitygrouplink/%s_%s"
                                         % (
-                                            s["id"], sg["name"])
+                                            s["id"], sg["id"])
                                         )
                          )
                     )
@@ -53,31 +53,29 @@ class TestSecurityGroupLinkController(test_middleware.TestMiddleware):
 
     def test_secgroup_show(self):
         tenant_id = fakes.tenants['foo']["id"]
+        security_groups = fakes.security_groups[tenant_id]
         for s in fakes.servers[tenant_id]:
             server_id = s["id"]
-            for sg in s["security_groups"]:
+            for sg in security_groups:
+                source = utils.join_url(self.application_url + "/",
+                                        "compute/%s" % server_id)
+                target = utils.join_url(
+                    self.application_url + "/",
+                    "securitygroup/%s" % sg["id"])
                 link_id = '_'.join([server_id,
-                                    sg["name"]]
+                                    sg["id"]]
                                    )
                 req = self._build_req("/securitygrouplink/%s" % link_id,
                                       tenant_id, method="GET")
                 resp = req.get_response(self.app)
                 self.assertContentType(resp)
-                source = utils.join_url(self.application_url + "/",
-                                        "compute/%s" % server_id)
-                for s_info in fakes.security_groups[tenant_id]:
-                    if sg["name"] == s_info["name"]:
-                        target = utils.join_url(
-                            self.application_url + "/",
-                            "securitygroup/%s" % s_info["id"])
-                        break
                 self.assertResultIncludesLinkAttr(link_id, source, target,
                                                   resp)
 
-    def test_create_link_with_pool(self):
+    def test_create_link(self):
         tenant_id = fakes.tenants['foo']["id"]
         server_id = uuid.uuid4().hex
-        sg_id = uuid.uuid4().hex
+        sg_id = fakes.security_groups[tenant_id][0]["id"]
 
         server_url = utils.join_url(self.application_url + "/",
                                     "compute/%s" % server_id)
