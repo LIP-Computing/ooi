@@ -72,7 +72,9 @@ class TestSecurityGroupControllerNeutron(base.TestController):
         m_list.return_value = sec_group[0]
         result = self.controller.show(req, None)
         expected = self.controller._get_security_group_resources(sec_group)[0]
-        self.assertIsInstance(result, occi_security_group.SecurityGroupResource)
+        self.assertIsInstance(
+            result,
+            occi_security_group.SecurityGroupResource)
         self.assertEqual(result, expected)
         m_list.assert_called_with(req, None)
 

@@ -113,9 +113,9 @@ class Controller(base.Controller):
                 s_name = s["title"]
                 s_summary = s["summary"]
                 s = securitygroup.SecurityGroupResource(title=s_name,
-                                                id=s_id,
-                                                rules=s_rules,
-                                                summary=s_summary)
+                                                        id=s_id,
+                                                        rules=s_rules,
+                                                        summary=s_summary)
                 occi_securitygroup_resources.append(s)
         return occi_securitygroup_resources
 
@@ -188,7 +188,8 @@ class Controller(base.Controller):
         :param body: body
         """
         action = req.GET.get("action", None)
-        occi_actions = [a.term for a in securitygroup.SecurityGroupResource.actions]
+        occi_actions = [a.term for a in
+                        securitygroup.SecurityGroupResource.actions]
 
         if action is None or action not in occi_actions:
             raise exception.InvalidAction(action=action)

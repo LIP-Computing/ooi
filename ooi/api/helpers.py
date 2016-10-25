@@ -1117,7 +1117,7 @@ class OpenStackHelper(BaseHelper):
         return []
 
     def _get_server_security_group(self, req, server_id):
-        """ Get security group from a server
+        """Get security group from a server
 
         :param req: incoming request
         :param server_id: server id
@@ -1138,7 +1138,7 @@ class OpenStackHelper(BaseHelper):
         return ooi_sec
 
     def list_server_security_links(self, req):
-        """ List security groups associated to servers
+        """List security groups associated to servers
 
         :param req: incoming request
         :return: security groups associated to servers
@@ -1159,7 +1159,7 @@ class OpenStackHelper(BaseHelper):
 
     def get_server_security_link(self, req, server_id,
                                  securitygroup_id):
-        """ Show security group link from a server
+        """Show security group link from a server
 
         :param req: incoming request
         :param server_id: server id
@@ -1177,7 +1177,7 @@ class OpenStackHelper(BaseHelper):
 
     def delete_server_security_link(self, req, server_id,
                                     securitygroup_id):
-        """ Delete security group link from a server
+        """Delete security group link from a server
 
         :param req: incoming request
         :param server_id: server id
@@ -1202,7 +1202,7 @@ class OpenStackHelper(BaseHelper):
 
     def create_server_security_link(self, req, server_id,
                                     securitygroup_id):
-        """ Create security group link in a server
+        """Create security group link in a server
 
         :param req: incoming request
         :param server_id: server id

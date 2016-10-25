@@ -29,8 +29,9 @@ class SecurityGroupResource(resource.Resource):
                      actions=actions)
 
     def __init__(self, title, id, rules, summary=None, mixins=[]):
-        super(SecurityGroupResource, self).__init__(title, mixins, summary=summary,
-                                            id=id)
+        super(SecurityGroupResource, self).__init__(title, mixins,
+                                                    summary=summary,
+                                                    id=id)
         self.attributes["occi.securitygroup.rules"] = attr.MutableAttribute(
             "occi.securitygroup.rules", rules)
 

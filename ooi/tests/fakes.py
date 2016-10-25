@@ -151,7 +151,7 @@ networks = {
     tenants["baz"]["id"]: [
         {"id": uuid.uuid4().hex},
         {"id": uuid.uuid4().hex}
-        ]
+    ]
 }
 
 ports = {
@@ -297,7 +297,7 @@ security_groups = {
 
     ],
     tenants["baz"]["id"]: [
-            {
+        {
             "name": "group3",
             "id": uuid.uuid4().hex,
             "description": "group three",
@@ -545,7 +545,8 @@ class FakeApp(object):
                                         "security_groups",
                                         servers[tenant["id"]],
                                         security_groups[tenant["id"]])
-            self._populate(path, "security_group", security_groups[tenant["id"]],
+            self._populate(path, "security_group",
+                           security_groups[tenant["id"]],
                            "os-security-groups")
             # NOTE(aloga): dict_values un Py3 is not serializable in JSON
             self._populate(path, "image", list(images.values()))
@@ -590,7 +591,8 @@ class FakeApp(object):
                 self.routes[obj_path] = create_fake_json_resp(
                     {"volumeAttachment": attach})
 
-    def _populate_server_links(self, path, resource, obj, servers_list, link_list):
+    def _populate_server_links(self, path, resource, obj,
+                               servers_list, link_list):
         if servers_list:
             for s in servers_list:
                 list_obj = []
@@ -602,7 +604,7 @@ class FakeApp(object):
                     )
                     list_obj.append(l)
                 self.routes[path_base] = create_fake_json_resp(
-                        {obj: list_obj})
+                    {obj: list_obj})
 
     @webob.dec.wsgify()
     def __call__(self, req):
@@ -662,9 +664,7 @@ class FakeApp(object):
         p = {"interfaceAttachment": {
             "port_id": uuid.uuid4().hex,
             "fixed_ips":
-                [{"ip_address":
-                    port[0]["fixed_ips"]
-                    [0]["ip_address"]
+                [{"ip_address": port[0]["fixed_ips"][0]["ip_address"]
                   }],
             "mac_addr": port[0]["mac_addr"],
             "port_state": "DOWN",
