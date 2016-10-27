@@ -102,20 +102,20 @@ class TestIntegrationSecGroupsNeutron(TestIntegration):
         resources = self.controller.show(self.req, htts_sec)
         self.assertIsInstance(resources, securitygroup.SecurityGroupResource)
 
-        # def test_create_securitygroup(self):
-        #     tenant_id = fakes_network.tenants["foo"]["id"]
-        #     sec_group = os_helpers.build_security_group_from_neutron(
-        #         fakes_network.security_groups[tenant_id]
-        #     )[0]
-        #     params = {"occi.core.title": "testgroup2",
-        #               "occi.core.summary": "test group two",
-        #               "occi.securitygroup.rules": sec_group["rules"]
-        #               }
-        #     categories = {securitygroup.SecurityGroupResource.kind}
-        #     occi_headers = fakes_network.create_header_occi(params, categories)
-        #     self.req.headers.update(occi_headers)
-        #     ret = self.controller.create(self.req, None)
-        #     expected = self.controller._get_security_group_resources([sec_group])
+    # def test_create_securitygroup(self):
+    #     tenant_id = fakes_network.tenants["baz"]["id"]
+    #     sec_group = os_helpers.build_security_group_from_neutron(
+    #         fakes_network.security_groups[tenant_id]
+    #     )[0]
+    #     params = {"occi.core.title": "testgroup2",
+    #               "occi.core.summary": "test group two",
+    #               "occi.securitygroup.rules": sec_group["rules"]
+    #               }
+    #     categories = {securitygroup.SecurityGroupResource.kind}
+    #     occi_headers = fakes_network.create_header_occi(params, categories)
+    #     self.req.headers.update(occi_headers)
+    #     ret = self.controller.create(self.req, None)
+    #     expected = self.controller._get_security_group_resources([sec_group])
         # #
         # def test_delete(self):
         #     htts_sec = 'e67864bf-e8d3-4512-a7ee-cff8eba8ff3b'
