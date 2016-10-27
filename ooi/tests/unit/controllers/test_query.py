@@ -106,7 +106,9 @@ class TestQueryController(base.TestController):
         ]
 
         ret = self.controller.index(req)
-        self.assertItemsEqual(expected, ret)
+        ret.sort(key=lambda x: x.__class__.__name__)
+        expected.sort(key=lambda x: x.__class__.__name__)
+        self.assertSequenceEqual(expected, ret)
 
     @mock.patch.object(query.Controller, "_os_tpls")
     @mock.patch.object(query.Controller, "_resource_tpls")
@@ -177,7 +179,9 @@ class TestQueryController(base.TestController):
         ]
 
         ret = neutron_controller.index(req)
-        self.assertItemsEqual(expected, ret)
+        ret.sort(key=lambda x: x.__class__.__name__)
+        expected.sort(key=lambda x: x.__class__.__name__)
+        self.assertSequenceEqual(expected, ret)
 
     @mock.patch.object(helpers.OpenStackHelper, "get_flavors")
     def test_get_resource_tpls(self, m_get_flavors):
