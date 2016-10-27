@@ -27,9 +27,8 @@ class IPReservation(network.NetworkResource):
                      'IPReservation', attributes, 'ipreservation/',
                      related=[network.NetworkResource.kind])
 
-    def __init__(self, title, address, summary=None, id=None, label=None,
-                 state=None, mixins=[]):
-        super(IPReservation, self).__init__(title, mixins, id=id)
+    def __init__(self, title, address, id=None, state=None, mixins=[]):
+        super(IPReservation, self).__init__(title, mixins, id=id, state=state)
         self.attributes["occi.ipreservation.address"] = attr.MutableAttribute(
             "occi.ipreservation.address", address)
 
