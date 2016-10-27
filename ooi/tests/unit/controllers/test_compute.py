@@ -194,7 +194,8 @@ class TestComputeController(base.TestController):
                 if net_id:
                     net_id = net_id[0]['id']
                 floatip_ip = fakes.floating_ips.get(tenant["id"], [])
-                if floatip_ip:
+                floatip_id = 0
+                if floatip_ip.__len__() > 0:
                     floatip_id = floatip_ip[0]['id']
                 m_ipr.return_value = floatip_id
                 m_net_id.return_value = net_id
@@ -233,6 +234,7 @@ class TestComputeController(base.TestController):
                 if net_id:
                     net_id = net_id[0]['id']
                 floatip_ip = fakes.floating_ips.get(tenant["id"], [])
+                floatip_id = 0
                 if floatip_ip:
                     floatip_id = floatip_ip[0]['id']
                 m_ipr.return_value = floatip_id
