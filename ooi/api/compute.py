@@ -298,7 +298,6 @@ class Controller(ooi.api.base.Controller):
                     if server_ip == ip["ip"]:
                         self.os_helper.remove_floating_ip(req, server_id,
                                                           ip["ip"])
-                        self.os_helper.release_floating_ip(req, ip["id"])
 
     def _delete(self, req, server_ids):
         for server_id in server_ids:

@@ -87,8 +87,7 @@ class TestComputeController(base.TestController):
     @mock.patch.object(compute.Controller, "_get_server_floating_ips")
     @mock.patch.object(helpers.OpenStackHelper, "get_floating_ips")
     @mock.patch.object(helpers.OpenStackHelper, "remove_floating_ip")
-    @mock.patch.object(helpers.OpenStackHelper, "release_floating_ip")
-    def test_release_floating_ips(self, mock_release, mock_remove,
+    def test_release_floating_ips(self, mock_remove,
                                   mock_get_floating,
                                   mock_server_floating):
         mock_server_floating.return_value = ["1.2.3.4", "5.6.7.8"]
@@ -101,8 +100,6 @@ class TestComputeController(base.TestController):
         mock_get_floating.assert_called_with(None)
         mock_remove.assert_has_calls([mock.call(None, "foo", "1.2.3.4"),
                                       mock.call(None, "foo", "5.6.7.8")])
-        mock_release.assert_has_calls([mock.call(None, "bar"),
-                                       mock.call(None, "baz")])
 
     @mock.patch.object(compute.Controller, "_delete")
     def test_delete(self, mock_delete):
