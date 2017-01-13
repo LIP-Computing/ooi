@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,6 +20,11 @@ _PREFIX = "http://schemas.ogf.org/occi/"
 def build_scheme(category, prefix=_PREFIX):
     scheme = urlparse.urljoin(prefix, category)
     return '%s#' % scheme
+
+
+def check_single_type(obj, obj_type):
+    if obj is not None and not isinstance(obj, obj_type):
+        raise TypeError('object must be of class %s' % obj_type)
 
 
 def check_type(obj_list, obj_type):

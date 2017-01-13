@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -47,7 +45,7 @@ class Controller(base.Controller):
         state = helpers.vol_state(v["status"])
         st = storage.StorageResource(title=v["displayName"], id=v["id"],
                                      size=v["size"], state=state)
-        return [st]
+        return st
 
     def create(self, req, body):
         parser = req.get_parser()(req.headers, req.body)

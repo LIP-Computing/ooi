@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -17,14 +15,84 @@
 import abc
 import collections
 import copy
+import numbers
 
+import enum
 import six
+
+
+@enum.unique
+class AttributeType(enum.Enum):
+    number_type = 1
+    string_type = 2
+    boolean_type = 3
+    object_type = 4
+    list_type = 5
+    hash_type = 6
+
+    def __init__(self, attr_type):
+        self.attr_type = attr_type
+
+    @classmethod
+    def check_number_type(cls, value):
+        if isinstance(value, bool) or not isinstance(value, numbers.Number):
+            raise TypeError("Expecting numeric value")
+
+    @classmethod
+    def check_string_type(cls, value):
+        if not isinstance(value, six.string_types):
+            raise TypeError("Expecting string type")
+
+    @classmethod
+    def check_boolean_type(cls, value):
+        if not isinstance(value, bool):
+            raise TypeError("Expecting boolean value")
+
+    @classmethod
+    def check_object_type(cls, value):
+        # object type can handle anything
+        return
+
+    @classmethod
+    def check_list_type(cls, value):
+        if not isinstance(value, list):
+            raise TypeError("Expecting list type")
+
+    @classmethod
+    def check_hash_type(cls, value):
+        if not isinstance(value, dict):
+            raise TypeError("Expecting hash type")
+
+    def check_type(self, value):
+        py_types_map = {
+            AttributeType.number_type.value: AttributeType.check_number_type,
+            AttributeType.boolean_type.value: AttributeType.check_boolean_type,
+            AttributeType.string_type.value: AttributeType.check_string_type,
+            AttributeType.object_type.value: AttributeType.check_object_type,
+            AttributeType.list_type.value: AttributeType.check_list_type,
+            AttributeType.hash_type.value: AttributeType.check_hash_type,
+        }
+        # do not mess with uninitialized values
+        if value is None:
+            return
+        py_types_map[self.attr_type](value)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class Attribute(object):
-    def __init__(self, name, value):
+    def __init__(self, name, value=None, required=False, default=None,
+                 description=None, attr_type=None):
         self._name = name
+        self.required = required
+        self.default = default
+        self.description = description
+        if not attr_type:
+            self.attr_type = AttributeType.object_type
+        elif not isinstance(attr_type, AttributeType):
+            raise TypeError("Unexpected attribute type")
+        else:
+            self.attr_type = attr_type
+        self.attr_type.check_type(value)
         self._value = value
 
     @property
@@ -39,11 +107,16 @@ class Attribute(object):
 class MutableAttribute(Attribute):
     @Attribute.value.setter
     def value(self, value):
+        self.attr_type.check_type(value)
         self._value = value
 
 
 class InmutableAttribute(Attribute):
-    pass
+    @classmethod
+    def from_attr(cls, attr, value=None):
+        return cls(attr.name, value=value, required=attr.required,
+                   default=attr.default, description=attr.description,
+                   attr_type=attr.attr_type)
 
 
 class AttributeCollection(object):

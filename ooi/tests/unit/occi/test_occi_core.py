@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -32,19 +30,91 @@ class TestAttributes(base.TestCase):
         attr = attribute.Attribute("occi.foo.bar", "bar")
         self.assertEqual("bar", attr.value)
         self.assertEqual("occi.foo.bar", attr.name)
+        self.assertEqual(False, attr.required)
+        self.assertEqual(None, attr.default)
+        self.assertEqual(None, attr.description)
+
+    def test_default_value(self):
+        attr = attribute.Attribute("occi.foo.bar", default="bar")
+        self.assertEqual(None, attr.value)
+        self.assertEqual("bar", attr.default)
+
+    def test_required(self):
+        attr = attribute.Attribute("occi.foo.bar", required=True)
+        self.assertEqual(True, attr.required)
+
+    def test_description(self):
+        attr = attribute.Attribute("occi.foo.bar", description="foo")
+        self.assertEqual("foo", attr.description)
 
     def test_mutable(self):
         attr = attribute.MutableAttribute("occi.foo.bar", "bar")
         attr.value = "bazonk"
         self.assertEqual("bazonk", attr.value)
+        self.assertEqual(attribute.AttributeType.object_type, attr.attr_type)
 
     def test_inmutable(self):
         attr = attribute.InmutableAttribute("occi.foo.bar", "bar")
+        self.assertEqual(attribute.AttributeType.object_type, attr.attr_type)
 
         def set_val():
             attr.value = "bazonk"
 
         self.assertRaises(AttributeError, set_val)
+
+    def test_attribute_type_list(self):
+        l = attribute.AttributeType.list_type
+        l.check_type([1])
+        l.check_type(None)
+        self.assertRaises(TypeError, l.check_type, 1)
+        self.assertRaises(TypeError, l.check_type, {"a": "b"})
+        self.assertRaises(TypeError, l.check_type, "foo")
+        self.assertRaises(TypeError, l.check_type, True)
+
+    def test_attribute_type_hash(self):
+        h = attribute.AttributeType.hash_type
+        h.check_type({})
+        h.check_type(None)
+        self.assertRaises(TypeError, h.check_type, 1)
+        self.assertRaises(TypeError, h.check_type, [])
+        self.assertRaises(TypeError, h.check_type, "foo")
+        self.assertRaises(TypeError, h.check_type, True)
+
+    def test_attribute_type_string(self):
+        s = attribute.AttributeType.string_type
+        s.check_type("hey")
+        s.check_type(None)
+        self.assertRaises(TypeError, s.check_type, 1)
+        self.assertRaises(TypeError, s.check_type, [])
+        self.assertRaises(TypeError, s.check_type, {})
+        self.assertRaises(TypeError, s.check_type, True)
+
+    def test_attribute_type_number(self):
+        n = attribute.AttributeType.number_type
+        n.check_type(1.0)
+        n.check_type(None)
+        self.assertRaises(TypeError, n.check_type, [])
+        self.assertRaises(TypeError, n.check_type, {})
+        self.assertRaises(TypeError, n.check_type, "foo")
+        self.assertRaises(TypeError, n.check_type, True)
+
+    def test_attribute_type_bool(self):
+        b = attribute.AttributeType.boolean_type
+        b.check_type(True)
+        b.check_type(None)
+        self.assertRaises(TypeError, b.check_type, 1)
+        self.assertRaises(TypeError, b.check_type, [])
+        self.assertRaises(TypeError, b.check_type, {})
+        self.assertRaises(TypeError, b.check_type, "foo")
+
+    def test_attribute_type_object(self):
+        o = attribute.AttributeType.object_type
+        o.check_type(None)
+        o.check_type(1)
+        o.check_type([])
+        o.check_type({})
+        o.check_type("foo")
+        o.check_type(True)
 
 
 class TestAttributeCollection(base.TestCase):
@@ -155,39 +225,48 @@ class TestCoreOCCIKind(BaseTestCoreOCCICategory):
                           *self.args,
                           actions=actions)
 
-    def test_related(self):
-        related = [self.obj(None, None, None)]
-        kind = self.obj(*self.args, related=related)
+
+def TestCoreOCCIKindRelations(TestCoreOCCIKind):
+    def test_parent(self):
+        parent = self.obj(None, None, None)
+        kind = self.obj(*self.args, parent=parent)
 
         for i in (self.args):
             self.assertEqual(i, getattr(kind, i))
-        self.assertEqual(related, kind.related)
+        self.assertEqual(parent, kind.parent)
 
-    def test_related_empty(self):
-        related = []
-        kind = self.obj(*self.args, related=related)
-
-        for i in (self.args):
-            self.assertEqual(i, getattr(kind, i))
-        self.assertEqual(related, kind.related)
-
-    def test_related_invalid(self):
-        related = None
+    def test_parent_invalid(self):
+        parent = None
         self.assertRaises(TypeError,
                           self.obj,
                           *self.args,
-                          related=related)
-
-    def test_related_invalid_list(self):
-        related = [None]
-        self.assertRaises(TypeError,
-                          self.obj,
-                          *self.args,
-                          related=related)
+                          parent=parent)
 
 
 class TestCoreOCCIMixin(TestCoreOCCIKind):
     obj = mixin.Mixin
+
+    def relation_test(self, relation, rel_type):
+        rel = [rel_type(None, None, None)]
+        kwargs = {relation: rel}
+        o = self.obj(*self.args, **kwargs)
+
+        for i in (self.args):
+            self.assertEqual(i, getattr(o, i))
+        self.assertEqual(rel, getattr(o, relation))
+
+    def test_depends(self):
+        self.relation_test("depends", mixin.Mixin)
+
+    def test_applies(self):
+        self.relation_test("applies", kind.Kind)
+
+    def relation_invalid(self, relation):
+        kwargs = {relation: None}
+        self.assertRaises(TypeError,
+                          self.obj,
+                          *self.args,
+                          **kwargs)
 
 
 class TestCoreOCCIAction(BaseTestCoreOCCICategory):
@@ -199,7 +278,7 @@ class TestCoreOCCIEntity(base.TestCase):
         e = entity.Entity
         self.assertIn("occi.core.id", e.attributes)
         self.assertIn("occi.core.title", e.attributes)
-        self.assertEqual([], e.kind.related)
+        self.assertIsNone(e.kind.parent)
         # TODO(aloga): We need to check that the attributes are actually set
         # after we get an object
 
@@ -241,7 +320,7 @@ class TestCoreOCCIResource(base.TestCase):
         self.assertIn("occi.core.id", r.attributes)
         self.assertIn("occi.core.summary", r.attributes)
         self.assertIn("occi.core.title", r.attributes)
-        self.assertIn(entity.Entity.kind, r.kind.related)
+        self.assertEqual(entity.Entity.kind, r.kind.parent)
         # TODO(aloga): We need to check that the attributes are actually set
         # after we get an object
 
@@ -253,7 +332,7 @@ class TestCoreOCCIResource(base.TestCase):
         self.assertEqual("bar", r.title)
         self.assertEqual("baz", r.summary)
         self.assertEqual(id, r.id)
-        self.assertIn(entity.Entity.kind, r.kind.related)
+        self.assertEqual(entity.Entity.kind, r.kind.parent)
         r.summary = "bazonk"
         self.assertEqual("bazonk", r.summary)
 
@@ -273,7 +352,7 @@ class TestCoreOCCIResource(base.TestCase):
 
     def test_mixins(self):
         m = mixin.Mixin(None, None, None)
-        r = resource.Resource(None, [m], [])
+        r = resource.Resource(None, [m])
         self.assertIsInstance(r.kind, kind.Kind)
         self.assertEqual([m], r.mixins)
 

@@ -44,7 +44,6 @@ def build_occi_ip_reservation(ip, application_url):
 
     attrs = [
         'occi.core.title="%s"' % name,
-        'occi.core.summary=[]',
         'occi.core.id="%s"' % network_id,
         'occi.ipreservation.address="%s"' % address,
         ]
@@ -127,11 +126,48 @@ class TestNetIPReservationController(test_middleware.TestMiddleware):
         req = self._build_req("/ipreservation/%s" % link_id,
                               tenant["id"], method="DELETE")
         resp = req.get_response(self.app)
-        self.assertEqual(501, resp.status_code)
+        self.assertEqual(204, resp.status_code)
 
     def test_create(self):
-        tenant = fakes.tenants["foo"]
+        tenant = fakes.tenants["baz"]
+        ip_id = fakes.allocated_ip["id"]
+        headers = {
+            'Category': 'ipreservation;'
+                        ' scheme='
+                        '"http://schemas.ogf.org/occi/infrastructure#";'
+                        'class="kind",'
+        }
         req = self._build_req("/ipreservation/",
-                              tenant["id"], method="POST")
+                              tenant["id"],
+                              method="POST",
+                              headers=headers)
         resp = req.get_response(self.app)
-        self.assertEqual(501, resp.status_code)
+        expected = [("X-OCCI-Location",
+                     utils.join_url(self.application_url + "/",
+                                    "ipreservation/%s" % ip_id))]
+        self.assertEqual(200, resp.status_code)
+        self.assertExpectedResult(expected, resp)
+
+    def test_create_with_pool(self):
+        tenant = fakes.tenants["baz"]
+        ip_id = fakes.allocated_ip["id"]
+        pool_name = "public"
+        headers = {
+            'Category': ('ipreservation;'
+                         ' scheme='
+                         '"http://schemas.ogf.org/occi/infrastructure#";'
+                         'class="kind",'
+                         '%s;'
+                         'scheme="http://schemas.openstack.org/network/'
+                         'floatingippool#"; class="mixin"') % pool_name,
+        }
+        req = self._build_req("/ipreservation/",
+                              tenant["id"],
+                              method="POST",
+                              headers=headers)
+        resp = req.get_response(self.app)
+        expected = [("X-OCCI-Location",
+                     utils.join_url(self.application_url + "/",
+                                    "ipreservation/%s" % ip_id))]
+        self.assertEqual(200, resp.status_code)
+        self.assertExpectedResult(expected, resp)

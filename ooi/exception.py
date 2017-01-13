@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -149,3 +147,8 @@ class NetworkPoolFound(NotFound):
 class MissingKeypairName(Invalid):
     msg_fmt = "Missing Keypair Name"
     code = 400
+
+
+class OCCIMixinConflict(OCCIException):
+    msg_fmt = "Conflicting OCCI Mixins used in request"
+    code = 409

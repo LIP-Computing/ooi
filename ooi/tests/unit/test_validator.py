@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -190,7 +188,7 @@ class TestValidator(base.TestCase):
     def test_optional_links(self):
         mixins = collections.Counter()
         schemes = collections.defaultdict(list)
-        links = {"foo": {"rel": "http://example.com/scheme#foo"}}
+        links = {"http://example.com/scheme#foo": [{"location": "foo"}]}
         pobj = {
             "kind": "compute",
             "category": "foo type",
@@ -207,7 +205,7 @@ class TestValidator(base.TestCase):
     def test_optional_links_invalid(self):
         mixins = collections.Counter()
         schemes = collections.defaultdict(list)
-        links = {"foo": {"rel": "http://example.com/scheme#foo"}}
+        links = {"http://example.com/scheme#foo": [{"location": "foo"}]}
         pobj = {
             "kind": "compute",
             "category": "foo type",

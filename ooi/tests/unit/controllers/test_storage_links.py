@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -76,8 +74,7 @@ class TestStorageLinkController(base.TestController):
             "volumeId": vol_id,
             "device": "/dev/sda",
         }
-        ret = self.controller.show(None, link_id)
-        link = ret.pop()
+        link = self.controller.show(None, link_id)
         self.assertIsInstance(link, storage_link.StorageLink)
         self.assertIsInstance(link.source, compute.ComputeResource)
         self.assertIsInstance(link.target, storage.StorageResource)

@@ -19,6 +19,8 @@ from ooi.api import helpers
 from ooi import exception
 from ooi.occi.core import collection
 from ooi.occi.infrastructure import ip_reservation
+from ooi.occi import validator as occi_validator
+from ooi.openstack import network as os_network
 
 
 class Controller(base.Controller):
@@ -86,7 +88,25 @@ class Controller(base.Controller):
         :param req: request object
         :param body: body request (not used)
         """
-        raise exception.NotImplemented()
+        parser = req.get_parser()(req.headers, req.body)
+        scheme = {
+            "category": ip_reservation.IPReservation.kind,
+            "optional_mixins": [
+                os_network.OSFloatingIPPool,
+            ]
+        }
+        obj = parser.parse()
+        validator = occi_validator.Validator(obj)
+        validator.validate(scheme)
+        pool = None
+        if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
+                pool = (
+                    obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
+                )
+        resp = self.os_helper.allocate_floating_ip(req, pool)
+        occi_network_resources = self._get_ipreservation_resources(
+            [resp])
+        return collection.Collection(resources=occi_network_resources)
 
     def delete(self, req, id):
         """delete an ip reservation instance
@@ -94,7 +114,8 @@ class Controller(base.Controller):
         :param req: current request
         :param id: identification
         """
-        raise exception.NotImplemented()
+        self.os_helper.release_floating_ip(req, id)
+        return []
 
     def run_action(self, req, id, body):
         """Run action over the network

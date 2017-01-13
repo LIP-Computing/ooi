@@ -21,16 +21,21 @@ from ooi.occi.infrastructure import network
 
 
 class IPReservation(network.NetworkResource):
-    attributes = attr.AttributeCollection(["occi.ipreservation.address"])
+    attributes = attr.AttributeCollection({
+        "occi.ipreservation.address": attr.MutableAttribute(
+            "occi.ipreservation.address",
+            description="Internet Protocol network address",
+            attr_type=attr.AttributeType.string_type)})
 
     kind = kind.Kind(helpers.build_scheme('infrastructure'), 'ipreservation',
                      'IPReservation', attributes, 'ipreservation/',
-                     related=[network.NetworkResource.kind])
+                     parent=network.NetworkResource.kind)
 
     def __init__(self, title, address, id=None, state=None, mixins=[]):
-        super(IPReservation, self).__init__(title, mixins, id=id, state=state)
-        self.attributes["occi.ipreservation.address"] = attr.MutableAttribute(
-            "occi.ipreservation.address", address)
+        super(IPReservation, self).__init__(title, id=id, state=state,
+                                            mixins=mixins)
+
+        self.address = address
 
     @property
     def address(self):

@@ -18,10 +18,11 @@ import mock
 
 from ooi.api import helpers
 from ooi.api import ip_reservation as ip_reservation_control
-from ooi import exception
 from ooi.occi.infrastructure import ip_reservation
+from ooi.openstack import network as os_network
 from ooi.tests import base
 from ooi.tests import fakes
+from ooi.tests import fakes_network as fake_nets
 
 
 class TestIPReservationController(base.TestController):
@@ -64,14 +65,56 @@ class TestIPReservationController(base.TestController):
         self.assertEqual(expected, result)
         m_ip.assert_called_with(None, floating_ip["id"])
 
-    def test_delete(self):
+    @mock.patch.object(helpers.OpenStackHelper,
+                       "release_floating_ip")
+    def test_delete(self, mock_release):
         tenant = fakes.tenants["baz"]
         floating_ip = fakes.floating_ips[tenant["id"]][0]
-        self.assertRaises(exception.NotImplemented,
-                          self.controller.delete,
-                          None, floating_ip["id"])
+        mock_release.return_value = []
+        self.controller.delete(None, floating_ip["id"])
+        mock_release.assert_called_with(None, floating_ip["id"])
 
-    def test_create(self):
-        self.assertRaises(exception.NotImplemented,
-                          self.controller.create,
-                          None)
+    @mock.patch.object(helpers.OpenStackHelper,
+                       "allocate_floating_ip")
+    def test_create(self, mock_allocate):
+        tenant = fakes.tenants["baz"]
+        floating_list = fakes.floating_ips[tenant["id"]][0]
+        mock_allocate.return_value = floating_list
+        parameters = {}
+        categories = {ip_reservation.IPReservation.kind}
+        req = fake_nets.create_req_test_occi(parameters, categories)
+
+        result = self.controller.create(req)
+
+        expected = self.controller._get_ipreservation_resources(
+            [floating_list])
+        self.assertEqual(expected, result.resources)
+        mock_allocate.assert_called_with(req, None)
+
+    @mock.patch.object(helpers.OpenStackHelper, "allocate_floating_ip")
+    @mock.patch("ooi.occi.validator.Validator")
+    def test_create_pool(self, mock_validator, mock_allocate):
+        tenant = fakes.tenants["baz"]
+        floating_list = fakes.floating_ips[tenant["id"]][0]
+        mock_allocate.return_value = floating_list
+        pool_name = "public"
+        obj = {
+            "attributes": {},
+            "schemes": {
+                os_network.OSFloatingIPPool.scheme: [pool_name],
+            }
+        }
+        parameters = {}
+        categories = {ip_reservation.IPReservation.kind}
+        req = fake_nets.create_req_test_occi(parameters, categories)
+
+        req.get_parser = mock.MagicMock()
+        req.get_parser.return_value.return_value.parse.return_value = obj
+        mock_validator.validate.return_value = True
+
+        result = self.controller.create(req)
+
+        expected = self.controller._get_ipreservation_resources(
+            [floating_list])
+        self.assertEqual(expected, result.resources)
+        mock_allocate.assert_called_with(req, pool_name)

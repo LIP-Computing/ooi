@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -22,13 +20,14 @@ from ooi.occi.core import entity
 from ooi.occi.core import link
 from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
+from ooi.occi.infrastructure import contextualization
 from ooi.occi.infrastructure import ip_reservation
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
 from ooi.occi.infrastructure import storage
 from ooi.occi.infrastructure import storage_link
 from ooi.occi.infrastructure import templates as infra_templates
-from ooi.openstack import contextualization
+from ooi.openstack import contextualization as os_contextualization
 from ooi.openstack import network as os_network
 from ooi.openstack import templates
 from ooi.tests import base
@@ -43,8 +42,7 @@ class TestQueryController(base.TestController):
     @mock.patch.object(query.Controller, "_os_tpls")
     @mock.patch.object(query.Controller, "_resource_tpls")
     @mock.patch.object(query.Controller, "_ip_pools")
-    @mock.patch.object(query.Controller, "_ip_reservations")
-    def test_index(self, m_ipres, m_res, m_os, m_pools):
+    def test_index(self, m_res, m_os, m_pools):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
 
@@ -58,63 +56,60 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
-        ip_res = ip_reservation.IPReservation("title",
-                                              "127.0.0.1")
-        m_ipres.return_value = [ip_res]
 
-        expected = [
-            res_tpl,
-            os_tpl,
-            ip_pool,
-            # OCCI Core Kinds:
+        expected_kinds = [
             entity.Entity.kind,
             resource.Resource.kind,
             link.Link.kind,
-
-            # OCCI infra Compute:
             compute.ComputeResource.kind,
+            storage.StorageResource.kind,
+            storage_link.StorageLink.kind,
+            network.NetworkResource.kind,
+            network_link.NetworkInterface.kind,
+            ip_reservation.IPReservation.kind,
+        ]
+
+        expected_mixins = [
+            res_tpl,
+            os_tpl,
+            ip_pool,
+            network.ip_network,
+            network_link.ip_network_interface,
+            infra_templates.os_tpl,
+            infra_templates.resource_tpl,
+            os_contextualization.user_data,
+            os_contextualization.public_key,
+            contextualization.user_data,
+            contextualization.ssh_key,
+        ]
+
+        expected_actions = [
             compute.start,
             compute.stop,
             compute.restart,
             compute.suspend,
 
-            # OCCI infra Storage
-            storage.StorageResource.kind,
-            storage_link.StorageLink.kind,
             storage.online,
             storage.offline,
             storage.backup,
             storage.snapshot,
             storage.resize,
 
-            # OCCI infra network
-            network.NetworkResource.kind,
             network.up,
             network.down,
-            network.ip_network,
-            network_link.NetworkInterface.kind,
-            network_link.ip_network_interface,
-            ip_res,
-
-            # OCCI infra compute mixins
-            infra_templates.os_tpl,
-            infra_templates.resource_tpl,
-
-            # OpenStack Contextualization
-            contextualization.user_data,
-            contextualization.public_key,
         ]
 
         ret = self.controller.index(req)
-        ret.sort(key=lambda x: x.__class__.__name__)
-        expected.sort(key=lambda x: x.__class__.__name__)
-        self.assertSequenceEqual(expected, ret)
+        self.assertItemsEqual(expected_kinds, ret.kinds)
+        self.assertItemsEqual(expected_mixins, ret.mixins)
+        self.assertItemsEqual(expected_actions, ret.actions)
+        self.assertEqual([], ret.resources)
+        self.assertEqual([], ret.links)
 
     @mock.patch.object(query.Controller, "_os_tpls")
     @mock.patch.object(query.Controller, "_resource_tpls")
     @mock.patch.object(query.Controller, "_ip_pools")
-    @mock.patch.object(query.Controller, "_ip_reservations")
-    def test_index_neutron(self, m_ipres, m_res, m_os, m_pools):
+    def test_index_neutron(self, m_res, m_os, m_pools):
         neutron_controller = query.Controller(mock.MagicMock(),
                                               None, "http://foo")
         tenant = fakes.tenants["foo"]
@@ -130,58 +125,56 @@ class TestQueryController(base.TestController):
         m_os.return_value = [os_tpl]
         ip_pool = os_network.OSFloatingIPPool("foo")
         m_pools.return_value = [ip_pool]
-        ip_res = ip_reservation.IPReservation("title",
-                                              "127.0.0.1")
-        m_ipres.return_value = [ip_res]
 
-        expected = [
-            res_tpl,
-            os_tpl,
-            ip_pool,
-            # OCCI Core Kinds:
+        expected_kinds = [
             entity.Entity.kind,
             resource.Resource.kind,
             link.Link.kind,
-
-            # OCCI infra Compute:
             compute.ComputeResource.kind,
+            storage.StorageResource.kind,
+            storage_link.StorageLink.kind,
+            network.NetworkResource.kind,
+            network_link.NetworkInterface.kind,
+            ip_reservation.IPReservation.kind,
+        ]
+
+        expected_mixins = [
+            res_tpl,
+            os_tpl,
+            ip_pool,
+            os_network.neutron_network,
+            network.ip_network,
+            network_link.ip_network_interface,
+            infra_templates.os_tpl,
+            infra_templates.resource_tpl,
+            os_contextualization.user_data,
+            os_contextualization.public_key,
+            contextualization.user_data,
+            contextualization.ssh_key,
+        ]
+
+        expected_actions = [
             compute.start,
             compute.stop,
             compute.restart,
             compute.suspend,
 
-            # OCCI infra Storage
-            storage.StorageResource.kind,
-            storage_link.StorageLink.kind,
             storage.online,
             storage.offline,
             storage.backup,
             storage.snapshot,
             storage.resize,
 
-            # OCCI infra network
-            network.NetworkResource.kind,
             network.up,
             network.down,
-            os_network.neutron_network,
-            network.ip_network,
-            network_link.NetworkInterface.kind,
-            network_link.ip_network_interface,
-            ip_res,
-
-            # OCCI infra compute mixins
-            infra_templates.os_tpl,
-            infra_templates.resource_tpl,
-
-            # OpenStack Contextualization
-            contextualization.user_data,
-            contextualization.public_key,
         ]
 
         ret = neutron_controller.index(req)
-        ret.sort(key=lambda x: x.__class__.__name__)
-        expected.sort(key=lambda x: x.__class__.__name__)
-        self.assertSequenceEqual(expected, ret)
+        self.assertItemsEqual(expected_kinds, ret.kinds)
+        self.assertItemsEqual(expected_mixins, ret.mixins)
+        self.assertItemsEqual(expected_actions, ret.actions)
+        self.assertEqual([], ret.resources)
+        self.assertEqual([], ret.links)
 
     @mock.patch.object(helpers.OpenStackHelper, "get_flavors")
     def test_get_resource_tpls(self, m_get_flavors):

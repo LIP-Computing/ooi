@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -76,7 +74,7 @@ class TestStorageController(base.TestController):
             vols = fakes.volumes[tenant["id"]]
             for idx, vol in enumerate(vols):
                 m_vol.return_value = vol
-                ret = self.controller.show(None, vol["id"])[0]
+                ret = self.controller.show(None, vol["id"])
                 self.assertIsInstance(ret, storage.StorageResource)
                 self.assertEqual(vol["id"], ret.id)
                 self.assertEqual(vol["displayName"], ret.title)
@@ -89,7 +87,7 @@ class TestStorageController(base.TestController):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
         name = "foo volume"
-        size = "10"
+        size = 10
         obj = {
             "attributes": {
                 "occi.core.title": name,

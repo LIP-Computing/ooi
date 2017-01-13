@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -49,6 +47,9 @@ class CategoryRenderer(HeaderRenderer):
             return ['location="%s"' % loc]
         return []
 
+    def _render_rel(self, env={}):
+        return []
+
     def render(self, env={}):
         d = {
             "term": self.obj.term,
@@ -59,16 +60,19 @@ class CategoryRenderer(HeaderRenderer):
         ret = []
         ret.append(('%(term)s; scheme="%(scheme)s"; class="%(class)s"; '
                     'title="%(title)s"') % d)
-        for rel in getattr(self.obj, 'related', []):
-            d = {"scheme": rel.scheme, "term": rel.term}
-            ret.append('rel="%(scheme)s%(term)s"' % d)
+        ret.extend(self._render_rel(env))
         ret.extend(self._render_location(env))
         # FIXME(enolfc): missing attributes and actions
         return [('Category', "; ".join(ret))]
 
 
 class KindRenderer(CategoryRenderer):
-    pass
+    def _render_rel(self, env={}):
+        parent = getattr(self.obj, 'parent', None)
+        if parent is not None:
+            d = {"scheme": parent.scheme, "term": parent.term}
+            return ['rel="%(scheme)s%(term)s"' % d]
+        return []
 
 
 class ActionRenderer(CategoryRenderer):
@@ -92,18 +96,34 @@ class ActionRenderer(CategoryRenderer):
 
 
 class MixinRenderer(CategoryRenderer):
-    pass
+    # See OCCI 1.2 text rendering 5.5.2 Mixin Instance Attribute Rendering
+    # Specifics: only render as "rel" the first "depends" of mixin
+    def _render_rel(self, env={}):
+        depends = getattr(self.obj, 'depends', [])
+        if depends:
+            d = {"scheme": depends[0].scheme, "term": depends[0].term}
+            return ['rel="%(scheme)s%(term)s"' % d]
+        return []
 
 
 class CollectionRenderer(HeaderRenderer):
     def render(self, env={}):
-        app_url = env.get("application_url", "")
         ret = []
-        for what in [self.obj.kinds, self.obj.mixins, self.obj.actions,
-                     self.obj.resources, self.obj.links]:
-            for el in what:
-                url = utils.join_url(app_url, el.location)
-                ret.append(('X-OCCI-Location', '%s' % url))
+        contents = (self.obj.kinds, self.obj.mixins, self.obj.actions,
+                    self.obj.resources, self.obj.links)
+        # Render individual objects if there are more that one type of objects
+        # otherwise render as X-OCCI-Location headers
+        if len([x for x in contents if x]) > 1:
+            for what in contents:
+                for el in what:
+                    renderer = get_renderer(el)
+                    ret.extend(renderer.render(env=env))
+        else:
+            app_url = env.get("application_url", "")
+            for what in contents:
+                for el in what:
+                    url = utils.join_url(app_url, el.location)
+                    ret.append(('X-OCCI-Location', '%s' % url))
         return ret
 
 
@@ -163,9 +183,10 @@ class LinkRenderer(EntityRenderer):
 class ResourceRenderer(EntityRenderer):
     def render(self, env={}):
         ret = super(ResourceRenderer, self).render(env)
-        for a in self.obj.actions:
-            r = ActionRenderer(a)
-            ret.extend(r.render(ass_obj=self.obj, env=env))
+        if self.obj.actions:
+            for a in self.obj.actions:
+                r = ActionRenderer(a)
+                ret.extend(r.render(ass_obj=self.obj, env=env))
         for l in self.obj.links:
             ret.extend(LinkRenderer(l).render_link(env=env))
         return ret

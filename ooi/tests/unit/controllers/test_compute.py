@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -26,9 +24,10 @@ from ooi.api import helpers
 from ooi import exception
 from ooi.occi.core import collection
 from ooi.occi.infrastructure import compute as occi_compute
+from ooi.occi.infrastructure import contextualization
 from ooi.occi.infrastructure import network as occi_network
 from ooi.occi.infrastructure import storage as occi_storage
-from ooi.openstack import contextualization
+from ooi.openstack import contextualization as os_contextualization
 from ooi.openstack import templates
 from ooi.tests import base
 from ooi.tests import fakes
@@ -152,7 +151,7 @@ class TestComputeController(base.TestController):
     @mock.patch("ooi.occi.validator.Validator")
     def test_run_action_start(self, m_validator, m_get_server, m_run_action):
         tenant = fakes.tenants["foo"]
-        #        for action in ("stop", "start", "restart", "suspend"):
+#        for action in ("stop", "start", "restart", "suspend"):
         action = "start"
 
         state_action_map = {
@@ -203,7 +202,7 @@ class TestComputeController(base.TestController):
 
                 ret = self.controller.show(None, server["id"])
                 # FIXME(aloga): Should we test the resource?
-                self.assertIsInstance(ret[0], occi_compute.ComputeResource)
+                self.assertIsInstance(ret, occi_compute.ComputeResource)
                 m_server.assert_called_with(None, server["id"])
                 m_flavor.assert_called_with(None, flavor["id"])
                 m_image.assert_called_with(None, image["id"])
@@ -243,7 +242,7 @@ class TestComputeController(base.TestController):
 
                 ret = self.controller.show(None, server["id"])
                 # FIXME(aloga): Should we test the resource?
-                self.assertIsInstance(ret[0], occi_compute.ComputeResource)
+                self.assertIsInstance(ret, occi_compute.ComputeResource)
                 m_server.assert_called_with(None, server["id"])
                 m_flavor.assert_called_with(None, flavor["id"])
                 m_image.assert_called_with(None, image["id"])
@@ -288,8 +287,8 @@ class TestComputeController(base.TestController):
     @mock.patch.object(helpers.OpenStackHelper, "create_server")
     @mock.patch.object(compute.Controller, "_get_network_from_req")
     @mock.patch("ooi.occi.validator.Validator")
-    def test_create_server_with_context(self, m_validator, m_net,
-                                        m_create):
+    def test_create_server_with_os_context(self, m_validator, m_net,
+                                           m_create):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
         obj = {
@@ -300,8 +299,7 @@ class TestComputeController(base.TestController):
             "schemes": {
                 templates.OpenStackOSTemplate.scheme: ["foo"],
                 templates.OpenStackResourceTemplate.scheme: ["bar"],
-                contextualization.user_data.scheme: None,
-                contextualization.public_key.scheme: None,
+                os_contextualization.user_data.scheme: None,
             },
         }
         # NOTE(aloga): the mocked call is
@@ -322,12 +320,69 @@ class TestComputeController(base.TestController):
                                     block_device_mapping_v2=[],
                                     networks=net)
 
+    @mock.patch.object(helpers.OpenStackHelper, "create_server")
+    @mock.patch.object(compute.Controller, "_get_network_from_req")
+    @mock.patch("ooi.occi.validator.Validator")
+    def test_create_server_with_occi_context(self, m_validator, m_net,
+                                             m_create):
+        tenant = fakes.tenants["foo"]
+        req = self._build_req(tenant["id"])
+        obj = {
+            "attributes": {
+                "occi.core.title": "foo instance",
+                "occi.compute.user_data": "bazonk",
+            },
+            "schemes": {
+                templates.OpenStackOSTemplate.scheme: ["foo"],
+                templates.OpenStackResourceTemplate.scheme: ["bar"],
+                contextualization.user_data.scheme: None,
+            },
+        }
+        # NOTE(aloga): the mocked call is
+        # "parser = req.get_parser()(req.headers, req.body)"
+        req.get_parser = mock.MagicMock()
+        # NOTE(aloga): MOG!
+        req.get_parser.return_value.return_value.parse.return_value = obj
+        m_validator.validate.return_value = True
+        server = {"id": uuid.uuid4().hex}
+        m_create.return_value = server
+        net = [{'uuid': uuid.uuid4().hex}]
+        m_net.return_value = net
+        ret = self.controller.create(req, None)  # noqa
+        self.assertIsInstance(ret, collection.Collection)
+        m_create.assert_called_with(mock.ANY, "foo instance", "foo", "bar",
+                                    user_data="bazonk",
+                                    key_name=None,
+                                    block_device_mapping_v2=[],
+                                    networks=net)
+
+    @mock.patch("ooi.occi.validator.Validator")
+    def test_create_server_with_context_conflict(self, m_validator):
+        tenant = fakes.tenants["foo"]
+        req = self._build_req(tenant["id"])
+        obj = {
+            "attributes": {
+                "occi.core.title": "foo instance",
+            },
+            "schemes": {
+                templates.OpenStackOSTemplate.scheme: ["foo"],
+                templates.OpenStackResourceTemplate.scheme: ["bar"],
+                os_contextualization.user_data.scheme: None,
+                contextualization.user_data.scheme: None,
+            },
+        }
+        req.get_parser = mock.MagicMock()
+        req.get_parser.return_value.return_value.parse.return_value = obj
+        m_validator.validate.return_value = True
+        self.assertRaises(exception.OCCIMixinConflict, self.controller.create,
+                          req, None)
+
     @mock.patch.object(helpers.OpenStackHelper, "keypair_create")
     @mock.patch.object(helpers.OpenStackHelper, "create_server")
     @mock.patch.object(compute.Controller, "_get_network_from_req")
     @mock.patch("ooi.occi.validator.Validator")
-    def test_create_server_with_sshkeys(self, m_validator, m_net,
-                                        m_server, m_keypair):
+    def test_create_server_with_os_sshkey(self, m_validator, m_net,
+                                          m_server, m_keypair):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
         obj = {
@@ -339,7 +394,7 @@ class TestComputeController(base.TestController):
             "schemes": {
                 templates.OpenStackOSTemplate.scheme: ["foo"],
                 templates.OpenStackResourceTemplate.scheme: ["bar"],
-                contextualization.public_key.scheme: None,
+                os_contextualization.public_key.scheme: None,
             },
         }
         req.get_parser = mock.MagicMock()
@@ -365,9 +420,9 @@ class TestComputeController(base.TestController):
     @mock.patch.object(helpers.OpenStackHelper, "create_server")
     @mock.patch.object(compute.Controller, "_get_network_from_req")
     @mock.patch("ooi.occi.validator.Validator")
-    def test_create_server_with_no_sshkey_name(self, m_validator, m_net,
-                                               m_server, m_keypair,
-                                               m_keypair_delete):
+    def test_create_server_with_os_sshkey_no_name(self, m_validator, m_net,
+                                                  m_server, m_keypair,
+                                                  m_keypair_delete):
         tenant = fakes.tenants["foo"]
         req = self._build_req(tenant["id"])
         obj = {
@@ -378,7 +433,7 @@ class TestComputeController(base.TestController):
             "schemes": {
                 templates.OpenStackOSTemplate.scheme: ["foo"],
                 templates.OpenStackResourceTemplate.scheme: ["bar"],
-                contextualization.public_key.scheme: None,
+                os_contextualization.public_key.scheme: None,
             },
         }
         req.get_parser = mock.MagicMock()
@@ -400,12 +455,73 @@ class TestComputeController(base.TestController):
                                     networks=net)
         m_keypair_delete.assert_called_with(mock.ANY, mock.ANY)
 
+    @mock.patch.object(helpers.OpenStackHelper, "keypair_delete")
+    @mock.patch.object(helpers.OpenStackHelper, "keypair_create")
+    @mock.patch.object(helpers.OpenStackHelper, "create_server")
+    @mock.patch.object(compute.Controller, "_get_network_from_req")
+    @mock.patch("ooi.occi.validator.Validator")
+    def test_create_server_with_occi_sshkey(self, m_validator, m_net,
+                                            m_server, m_keypair,
+                                            m_keypair_delete):
+        tenant = fakes.tenants["foo"]
+        req = self._build_req(tenant["id"])
+        obj = {
+            "attributes": {
+                "occi.core.title": "foo instance",
+                "occi.credentials.ssh_key": "wtfoodata"
+            },
+            "schemes": {
+                templates.OpenStackOSTemplate.scheme: ["foo"],
+                templates.OpenStackResourceTemplate.scheme: ["bar"],
+                contextualization.ssh_key.scheme: None,
+            },
+        }
+        req.get_parser = mock.MagicMock()
+        req.get_parser.return_value.return_value.parse.return_value = obj
+        m_validator.validate.return_value = True
+        server = {"id": uuid.uuid4().hex}
+        m_server.return_value = server
+        m_keypair.return_value = None
+        net = [{'uuid': uuid.uuid4().hex}]
+        m_net.return_value = net
+        ret = self.controller.create(req, None)  # noqa
+        self.assertIsInstance(ret, collection.Collection)
+        m_keypair.assert_called_with(mock.ANY, mock.ANY,
+                                     public_key="wtfoodata")
+        m_server.assert_called_with(mock.ANY, "foo instance", "foo", "bar",
+                                    user_data=None,
+                                    key_name=mock.ANY,
+                                    block_device_mapping_v2=[],
+                                    networks=net)
+        m_keypair_delete.assert_called_with(mock.ANY, mock.ANY)
+
+    @mock.patch("ooi.occi.validator.Validator")
+    def test_create_server_with_sshkey_conflict(self, m_validator):
+        tenant = fakes.tenants["foo"]
+        req = self._build_req(tenant["id"])
+        obj = {
+            "attributes": {
+                "occi.core.title": "foo instance",
+            },
+            "schemes": {
+                templates.OpenStackOSTemplate.scheme: ["foo"],
+                templates.OpenStackResourceTemplate.scheme: ["bar"],
+                os_contextualization.public_key.scheme: None,
+                contextualization.ssh_key.scheme: None,
+            },
+        }
+        req.get_parser = mock.MagicMock()
+        req.get_parser.return_value.return_value.parse.return_value = obj
+        m_validator.validate.return_value = True
+        self.assertRaises(exception.OCCIMixinConflict, self.controller.create,
+                          req, None)
+
     def test_build_block_mapping_no_links(self):
         ret = self.controller._build_block_mapping(None, {})
         self.assertEqual([], ret)
 
     def test_build_block_mapping_invalid_rel(self):
-        obj = {'links': {'foo': {'rel': 'bar'}}}
+        obj = {"links": {"foo": [{"target": "bar"}]}}
         ret = self.controller._build_block_mapping(None, obj)
         self.assertEqual([], ret)
 
@@ -414,12 +530,13 @@ class TestComputeController(base.TestController):
         vol_id = uuid.uuid4().hex
         image_id = uuid.uuid4().hex
         obj = {
-            'links': {
-                'l1': {
-                    'rel': ('http://schemas.ogf.org/occi/infrastructure#'
-                            'storage'),
-                    'occi.core.target': vol_id,
-                }
+            "links": {
+                "http://schemas.ogf.org/occi/infrastructure#storage": [
+                    {
+                        "id": "l1",
+                        "target": vol_id,
+                    }
+                ]
             },
             "schemes": {
                 templates.OpenStackOSTemplate.scheme: [image_id],
@@ -450,13 +567,16 @@ class TestComputeController(base.TestController):
         vol_id = uuid.uuid4().hex
         image_id = uuid.uuid4().hex
         obj = {
-            'links': {
-                'l1': {
-                    'rel': ('http://schemas.ogf.org/occi/infrastructure#'
-                            'storage'),
-                    'occi.core.target': vol_id,
-                    'occi.storagelink.deviceid': 'baz'
-                }
+            "links": {
+                "http://schemas.ogf.org/occi/infrastructure#storage": [
+                    {
+                        "id": "l1",
+                        "target": vol_id,
+                        "attributes": {
+                            "occi.storagelink.deviceid": "baz"
+                        }
+                    }
+                ]
             },
             "schemes": {
                 templates.OpenStackOSTemplate.scheme: [image_id],
@@ -521,12 +641,14 @@ class TestComputeController(base.TestController):
     def test_get_network_from_req(self, m_get_id):
         net_id = uuid.uuid4().hex
         obj = {
-            'links': {
-                'l1': {
-                    'rel': '%s%s' % (occi_network.NetworkResource.kind.scheme,
-                                     occi_network.NetworkResource.kind.term),
-                    'occi.core.target': net_id,
-                }
+            "links": {
+                "%s%s" % (occi_network.NetworkResource.kind.scheme,
+                          occi_network.NetworkResource.kind.term): [
+                    {
+                        "id": "l1",
+                        "target": net_id,
+                    }
+                ]
             },
         }
         m_get_id.return_value = (None, net_id)
@@ -545,17 +667,18 @@ class TestComputeController(base.TestController):
         net_id_1 = uuid.uuid4().hex
         net_id_2 = uuid.uuid4().hex
         obj = {
-            'links': {
-                'l1': {
-                    'rel': '%s%s' % (occi_network.NetworkResource.kind.scheme,
-                                     occi_network.NetworkResource.kind.term),
-                    'occi.core.target': net_id_1,
-                },
-                'l2': {
-                    'rel': '%s%s' % (occi_network.NetworkResource.kind.scheme,
-                                     occi_network.NetworkResource.kind.term),
-                    'occi.core.target': net_id_2,
-                }
+            "links": {
+                "%s%s" % (occi_network.NetworkResource.kind.scheme,
+                          occi_network.NetworkResource.kind.term): [
+                    {
+                        "id": "l1",
+                        "target": net_id_1,
+                    },
+                    {
+                        "id": "l2",
+                        "target": net_id_2,
+                    }
+                ]
             },
         }
         m_get_id.side_effect = [(None, net_id_1),

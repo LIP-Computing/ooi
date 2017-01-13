@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -27,7 +25,7 @@ class OpenStackOSTemplate(templates.OCCIOSTemplate):
         super(OpenStackOSTemplate, self).__init__(
             uuid,
             name,
-            related=[templates.os_tpl],
+            depends=[templates.os_tpl],
             location=location)
 
 
@@ -36,13 +34,24 @@ class OpenStackResourceTemplate(templates.OCCIResourceTemplate):
 
     def __init__(self, id, name, cores, memory, disk, ephemeral=0, swap=0):
         attrs = [
-            attribute.InmutableAttribute("occi.compute.cores", cores),
-            attribute.InmutableAttribute("occi.compute.memory", memory),
-            attribute.InmutableAttribute("org.openstack.flavor.disk", disk),
-            attribute.InmutableAttribute("org.openstack.flavor.ephemeral",
-                                         ephemeral),
-            attribute.InmutableAttribute("org.openstack.flavor.swap", swap),
-            attribute.InmutableAttribute("org.openstack.flavor.name", name)
+            attribute.InmutableAttribute(
+                "occi.compute.cores", cores,
+                attr_type=attribute.AttributeType.number_type),
+            attribute.InmutableAttribute(
+                "occi.compute.memory", memory,
+                attr_type=attribute.AttributeType.number_type),
+            attribute.InmutableAttribute(
+                "org.openstack.flavor.disk", disk,
+                attr_type=attribute.AttributeType.number_type),
+            attribute.InmutableAttribute(
+                "org.openstack.flavor.ephemeral", ephemeral,
+                attr_type=attribute.AttributeType.number_type),
+            attribute.InmutableAttribute(
+                "org.openstack.flavor.swap", swap,
+                attr_type=attribute.AttributeType.number_type),
+            attribute.InmutableAttribute(
+                "org.openstack.flavor.name", name,
+                attr_type=attribute.AttributeType.string_type),
         ]
 
         attrs = attribute.AttributeCollection({a.name: a for a in attrs})
@@ -51,7 +60,7 @@ class OpenStackResourceTemplate(templates.OCCIResourceTemplate):
         super(OpenStackResourceTemplate, self).__init__(
             id,
             "Flavor: %s" % name,
-            related=[templates.resource_tpl],
+            depends=[templates.resource_tpl],
             attributes=attrs,
             location=location)
 

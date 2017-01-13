@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 # Copyright 2015 LIP - INDIGO-DataCloud
 #
@@ -17,17 +15,19 @@
 
 from ooi.api import base
 import ooi.api.helpers
+from ooi.occi.core import collection
 from ooi.occi.core import entity
 from ooi.occi.core import link
 from ooi.occi.core import resource
 from ooi.occi.infrastructure import compute
+from ooi.occi.infrastructure import contextualization
 from ooi.occi.infrastructure import ip_reservation
 from ooi.occi.infrastructure import network
 from ooi.occi.infrastructure import network_link
 from ooi.occi.infrastructure import storage
 from ooi.occi.infrastructure import storage_link
 from ooi.occi.infrastructure import templates as infra_templates
-from ooi.openstack import contextualization
+from ooi.openstack import contextualization as os_contextualization
 from ooi.openstack import network as os_network
 from ooi.openstack import templates
 
@@ -74,63 +74,52 @@ class Controller(base.Controller):
                 occi_ip_pools.append(os_network.OSFloatingIPPool(p["name"]))
         return occi_ip_pools
 
-    def _ip_reservations(self, req):
-        ips = self.os_helper.get_floating_ips(req)
-        occi_ip_pools = []
-        if ips:
-            for ip in ips:
-                if not ip["instance_id"]:
-                    ip_id = str(ip["id"])  # some versions retrieve int.
-                    ip_pool = ip["pool"]
-                    ip_address = ip["ip"]
-                    occi_ip_pools.append(
-                        ip_reservation.IPReservation(
-                            title=ip_pool,
-                            address=ip_address,
-                            id=ip_id
-                        ))
-        return occi_ip_pools
-
     def index(self, req):
-        l = []
         # OCCI Core Kinds:
-        l.append(entity.Entity.kind)
-        l.append(resource.Resource.kind)
-        l.append(link.Link.kind)
+        kinds = []
+        actions = []
+        mixins = []
+        kinds.append(entity.Entity.kind)
+        kinds.append(resource.Resource.kind)
+        kinds.append(link.Link.kind)
 
         # OCCI infra Compute:
-        l.append(compute.ComputeResource.kind)
-        l.extend(compute.ComputeResource.actions)
+        kinds.append(compute.ComputeResource.kind)
+        actions.extend(compute.ComputeResource.actions)
 
         # OCCI infra Storage
-        l.append(storage.StorageResource.kind)
-        l.append(storage_link.StorageLink.kind)
-        l.extend(storage.StorageResource.actions)
+        kinds.append(storage.StorageResource.kind)
+        kinds.append(storage_link.StorageLink.kind)
+        actions.extend(storage.StorageResource.actions)
 
         # OCCI infra network
-        l.append(network.NetworkResource.kind)
-        l.extend(network.NetworkResource.actions)
+        kinds.append(network.NetworkResource.kind)
+        actions.extend(network.NetworkResource.actions)
         if self.neutron_ooi_endpoint:
-            l.append(os_network.neutron_network)
-        l.append(network.ip_network)
-        l.append(network_link.NetworkInterface.kind)
-        l.append(network_link.ip_network_interface)
+            mixins.append(os_network.neutron_network)
+        mixins.append(network.ip_network)
+        kinds.append(network_link.NetworkInterface.kind)
+        mixins.append(network_link.ip_network_interface)
+        kinds.append(ip_reservation.IPReservation.kind)
 
         # OCCI infra compute mixins
-        l.append(infra_templates.os_tpl)
-        l.append(infra_templates.resource_tpl)
+        mixins.append(infra_templates.os_tpl)
+        mixins.append(infra_templates.resource_tpl)
 
         # OpenStack flavors & images
-        l.extend(self._resource_tpls(req))
-        l.extend(self._os_tpls(req))
+        mixins.extend(self._resource_tpls(req))
+        mixins.extend(self._os_tpls(req))
 
         # OpenStack Contextualization
-        l.append(contextualization.user_data)
-        l.append(contextualization.public_key)
+        mixins.append(os_contextualization.user_data)
+        mixins.append(os_contextualization.public_key)
+
+        # OCCI Contextualization
+        mixins.append(contextualization.user_data)
+        mixins.append(contextualization.ssh_key)
 
         # OpenStack Floating IP Pools
-        l.extend(self._ip_pools(req))
-
-        # OpenStack Floating IPs
-        l.extend(self._ip_reservations(req))
-        return l
+        mixins.extend(self._ip_pools(req))
+        return collection.Collection(kinds=kinds,
+                                     mixins=mixins,
+                                     actions=actions)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -38,7 +36,7 @@ class TestOpenStackOSTemplate(base.TestCase):
         self.assertEqual(id, tpl.term)
         self.assertEqual(title, tpl.title)
         self.assertTrue(tpl.scheme.startswith(helpers._PREFIX))
-        self.assertIn(occi_templates.os_tpl, tpl.related)
+        self.assertIn(occi_templates.os_tpl, tpl.depends)
         self.assertEqual(location, tpl.location)
 
 
@@ -64,7 +62,7 @@ class TestOpenStackResourceTemplate(base.TestCase):
         self.assertEqual(id, tpl.term)
         self.assertEqual("Flavor: %s" % name, tpl.title)
         self.assertTrue(tpl.scheme.startswith(helpers._PREFIX))
-        self.assertIn(occi_templates.resource_tpl, tpl.related)
+        self.assertIn(occi_templates.resource_tpl, tpl.depends)
         self.assertEqual(cores, tpl.cores)
         self.assertEqual(memory, tpl.memory)
         self.assertEqual(disk, tpl.disk)
@@ -122,7 +120,7 @@ class TestOSNetworkInterface(base.TestCase):
                                           "127.0.0.1", pool="foo")
         self.assertEqual('_'.join([c.id, "127.0.0.1"]), i.id)
         self.assertEqual(i.address, "127.0.0.1")
-        self.assertEqual(i.interface, "undefined")
+        self.assertEqual(i.interface, "eth0")
         self.assertEqual(i.mac, "00:01:02:03:04:05")
         self.assertEqual(i.state, "active")
         self.assertIsNone(i.gateway)

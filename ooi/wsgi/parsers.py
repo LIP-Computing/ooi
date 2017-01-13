@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,14 +13,19 @@
 # under the License.
 
 import collections
+import copy
+import json
 import shlex
+
+from six.moves import urllib
 
 from ooi import exception
 
 
 _MEDIA_TYPE_MAP = collections.OrderedDict([
     ('text/plain', 'text'),
-    ('text/occi', 'header')
+    ('text/occi', 'header'),
+    ('application/occi+json', 'json'),
 ])
 
 
@@ -110,19 +113,42 @@ class TextParser(BaseParser):
             "schemes": schemes,
         }
 
+    def parse_attribute_value(self, value):
+        v = value.strip()
+        # quoted: string or bool
+        if v[0] == '"':
+            v = v.strip('"')
+            if v == "true":
+                return True
+            elif v == "false":
+                return False
+            else:
+                return v
+        # unquoted: number or enum-val
+        try:
+            return int(v)
+        except ValueError:
+            try:
+                return float(v)
+            except ValueError:
+                return v
+
     def parse_attributes(self, headers):
         attrs = {}
         try:
             header_attrs = headers["X-OCCI-Attribute"]
             for attr in _quoted_split(header_attrs):
-                l = _split_unquote(attr)
-                attrs[l[0].strip()] = l[1]
+                try:
+                    n, v = attr.split("=", 1)
+                    attrs[n.strip()] = self.parse_attribute_value(v)
+                except ValueError:
+                    raise exception.OCCIInvalidSchema("Unable to parse")
         except KeyError:
             pass
         return attrs
 
     def parse_links(self, headers):
-        links = {}
+        links = collections.defaultdict(list)
         try:
             header_links = headers["Link"]
         except KeyError:
@@ -132,12 +158,31 @@ class TextParser(BaseParser):
             # remove the "<" and ">"
             if ll[0][1] != "<" and ll[0][-1] != ">":
                 raise exception.OCCIInvalidSchema("Unable to parse link")
-            link_dest = ll[0][1:-1]
+            link_id = ll[0][1:-1]
+            target_location = None
+            target_kind = None
+            attrs = {}
             try:
-                d = dict([_split_unquote(i) for i in ll[1:]])
+                for attr in ll[1:]:
+                    n, v = attr.split("=", 1)
+                    n = n.strip().strip('"')
+                    v = self.parse_attribute_value(v)
+                    if n == "rel":
+                        target_kind = v
+                        continue
+                    elif n == "occi.core.target":
+                        target_location = v
+                        continue
+                    attrs[n] = v
             except ValueError:
                 raise exception.OCCIInvalidSchema("Unable to parse link")
-            links[link_dest] = d
+            if not (target_kind and target_location):
+                raise exception.OCCIInvalidSchema("Unable to parse link")
+            links[target_kind].append({
+                "target": target_location,
+                "attributes": attrs,
+                "id": link_id,
+            })
         return links
 
     def _convert_to_headers(self):
@@ -164,9 +209,66 @@ class HeaderParser(TextParser):
         return self._parse(self.headers)
 
 
+class JsonParser(BaseParser):
+    def parse_categories(self, obj):
+        kind = action = None
+        mixins = collections.Counter()
+        schemes = collections.defaultdict(list)
+        if "kind" in obj:
+            sch, term = urllib.parse.urldefrag(obj["kind"])
+            schemes[sch + "#"].append(term)
+            kind = obj["kind"]
+            for m in obj.get("mixins", []):
+                mixins[m] += 1
+                sch, term = urllib.parse.urldefrag(m)
+                schemes[sch + "#"].append(term)
+        if "action" in obj:
+            action = obj["action"]
+            sch, term = urllib.parse.urldefrag(obj["action"])
+            schemes[sch + "#"].append(term)
+        if action and kind:
+            raise exception.OCCIInvalidSchema("Action and kind together?")
+        return {
+            "category": kind or action,
+            "mixins": mixins,
+            "schemes": schemes,
+        }
+
+    def parse_attributes(self, obj):
+        if "attributes" in obj:
+            return copy.copy(obj["attributes"])
+        return {}
+
+    def parse_links(self, obj):
+        links = collections.defaultdict(list)
+        for l in obj.get("links", []):
+            try:
+                d = {
+                    "target": l["target"]["location"],
+                    "attributes": copy.copy(l.get("attributes", {})),
+                }
+                if "id" in l:
+                    d["id"] = l["id"]
+                links[l["target"]["kind"]].append(d)
+            except KeyError:
+                raise exception.OCCIInvalidSchema("Unable to parse link")
+        return links
+
+    def parse(self):
+        try:
+            obj = json.loads(self.body or "")
+        except ValueError:
+            raise exception.OCCIInvalidSchema("Unable to parse JSON")
+        r = self.parse_categories(obj)
+        r['attributes'] = self.parse_attributes(obj)
+        r['links'] = self.parse_links(obj)
+        return r
+
+
 _PARSERS_MAP = {
     "text": TextParser,
     "header": HeaderParser,
+    "json": JsonParser,
 }
 
 

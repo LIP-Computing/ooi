@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2015 Spanish National Research Council
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -33,16 +31,20 @@ class Resource(entity.Entity):
     attributes that Link sub-types inherit.
     """
 
-    attributes = attribute.AttributeCollection(["occi.core.summary"])
+    attributes = attribute.AttributeCollection({
+        "occi.core.summary": attribute.MutableAttribute(
+            "occi.core.summary", description=("A summarizing description of "
+                                              "the resource instance."),
+            attr_type=attribute.AttributeType.string_type),
+    })
 
     kind = kind.Kind(helpers.build_scheme('core'), 'resource',
                      'resource', attributes, 'resource/',
-                     related=[entity.Entity.kind])
+                     parent=entity.Entity.kind)
 
     def __init__(self, title, mixins, id=None, summary=None):
         super(Resource, self).__init__(title, mixins, id=id)
-        self.attributes["occi.core.summary"] = attribute.MutableAttribute(
-            "occi.core.summary", summary)
+        self.summary = summary
         self._links = []
 
     def __eq__(self, other):
