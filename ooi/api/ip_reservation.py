@@ -52,9 +52,13 @@ class Controller(base.Controller):
                 n_id = str(s["id"])  # some versions retrieve int.
                 n_name = s["pool"]
                 n_address = s["ip"]
+                n_used = False
+                if s["instance_id"]:
+                    n_used = True
                 s = ip_reservation.IPReservation(title=n_name,
                                                  id=n_id,
-                                                 address=n_address
+                                                 address=n_address,
+                                                 used=n_used
                                                  )
                 occi_ipreservation_resources.append(s)
         return occi_ipreservation_resources
@@ -100,9 +104,9 @@ class Controller(base.Controller):
         validator.validate(scheme)
         pool = None
         if os_network.OSFloatingIPPool.scheme in obj["schemes"]:
-                pool = (
-                    obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
-                )
+            pool = (
+                obj["schemes"][os_network.OSFloatingIPPool.scheme][0]
+            )
         resp = self.os_helper.allocate_floating_ip(req, pool)
         occi_network_resources = self._get_ipreservation_resources(
             [resp])

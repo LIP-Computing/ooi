@@ -123,7 +123,8 @@ linked_vm_id_2 = uuid.uuid4().hex
 
 allocated_ip = {"ip": "192.168.253.23",
                 "id": 1,
-                "pool": uuid.uuid4().hex}
+                "pool": uuid.uuid4().hex,
+                "instance_id": None}
 
 floating_ips = {
     tenants["foo"]["id"]: [],

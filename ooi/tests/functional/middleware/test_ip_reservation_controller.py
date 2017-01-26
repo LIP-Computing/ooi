@@ -25,6 +25,10 @@ def build_occi_ip_reservation(ip, application_url):
     name = ip["pool"]
     network_id = ip["id"]
     address = ip["ip"]
+    if ip["instance_id"]:
+        used = str(True).lower()
+    else:
+        used = str(False).lower()
     cats = []
     cats.append('ipreservation; '
                 'scheme='
@@ -46,6 +50,7 @@ def build_occi_ip_reservation(ip, application_url):
         'occi.core.title="%s"' % name,
         'occi.core.id="%s"' % network_id,
         'occi.ipreservation.address="%s"' % address,
+        'occi.ipreservation.used="%s"' % used,
         ]
     result = []
     for c in cats:

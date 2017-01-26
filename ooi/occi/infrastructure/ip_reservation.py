@@ -24,18 +24,37 @@ class IPReservation(network.NetworkResource):
     attributes = attr.AttributeCollection({
         "occi.ipreservation.address": attr.MutableAttribute(
             "occi.ipreservation.address",
-            description="Internet Protocol network address",
-            attr_type=attr.AttributeType.string_type)})
+            description="Internet Protocol(IP) network"
+                        " address re-served for Compute instances"
+                        " linking with this IPReservation instance",
+            attr_type=attr.AttributeType.string_type),
+        "occi.ipreservation.used": attr.InmutableAttribute(
+            "occi.ipreservation.used",
+            description="Indication whether"
+                        " the reserved address is currently in use.",
+            attr_type=attr.AttributeType.boolean_type),
+        "occi.ipreservation.state": attr.InmutableAttribute(
+            "occi.ipreservation.state",
+            description="Indicates the state of the resource.",
+            attr_type=attr.AttributeType.string_type),
+    })
 
     kind = kind.Kind(helpers.build_scheme('infrastructure'), 'ipreservation',
                      'IPReservation', attributes, 'ipreservation/',
                      parent=network.NetworkResource.kind)
 
-    def __init__(self, title, address, id=None, state=None, mixins=[]):
-        super(IPReservation, self).__init__(title, id=id, state=state,
+    def __init__(self, title, address, id=None, used=False,
+                 state=None, mixins=[]):
+        super(IPReservation, self).__init__(title, id=id,
                                             mixins=mixins)
 
         self.address = address
+        self.attributes["occi.ipreservation.used"] = (
+            attr.InmutableAttribute.from_attr(
+                self.attributes["occi.ipreservation.used"], used))
+        self.attributes["occi.ipreservation.state"] = (
+            attr.InmutableAttribute.from_attr(
+                self.attributes["occi.ipreservation.state"], state))
 
     @property
     def address(self):
@@ -44,3 +63,11 @@ class IPReservation(network.NetworkResource):
     @address.setter
     def address(self, value):
         self.attributes["occi.ipreservation.address"].value = value
+
+    @property
+    def used(self):
+        return self.attributes["occi.ipreservation.used"].value
+
+    @property
+    def state(self):
+        return self.attributes["occi.ipreservation.state"].value
