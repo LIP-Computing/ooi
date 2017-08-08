@@ -278,21 +278,24 @@ class OpenStackNeutron(helpers.BaseHelper):
         :param req: the incoming network
         :param id: net identification
         """
-        if id == os_helpers.PUBLIC_NETWORK:
-            id = self._get_public_network(req)
-        path = "/networks/%s" % id
-        req = self._make_get_request(req, path)
-        response = req.get_response()
-        net = self.get_from_response(response, "network", {})
-        # subnet
-        if "subnets" in net:
-            path = "/subnets/%s" % net["subnets"][0]
-            req_subnet = self._make_get_request(req, path)
-            response_subnet = req_subnet.get_response()
-            net["subnet_info"] = self.get_from_response(
-                response_subnet, "subnet", {})
+        try:
+            if id == os_helpers.PUBLIC_NETWORK:
+                id = self._get_public_network(req)
+            path = "/networks/%s" % id
+            req = self._make_get_request(req, path)
+            response = req.get_response()
+            net = self.get_from_response(response, "network", {})
+            # subnet
+            if "subnets" in net:
+                path = "/subnets/%s" % net["subnets"][0]
+                req_subnet = self._make_get_request(req, path)
+                response_subnet = req_subnet.get_response()
+                net["subnet_info"] = self.get_from_response(
+                    response_subnet, "subnet", {})
 
-        ooi_networks = self._build_networks([net])
+            ooi_networks = self._build_networks([net])
+        except Exception:
+            raise exception.NetworkNotFound()
 
         return ooi_networks[0]
 
